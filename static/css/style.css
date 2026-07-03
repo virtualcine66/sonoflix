@@ -60,7 +60,7 @@ hr { border: 0; border-top: 1px solid #333; margin: 30px 0; }
 
 /* --- CARROSSEL --- */
 .container { padding: 20px 5%; }
-.category-section { margin-bottom: 40px; position: relative; }
+.category-section { margin-bottom: 40px; }
 .category-title { font-size: 1.4rem; margin-bottom: 15px; border-left: 4px solid #e50914; padding-left: 10px; }
 
 .carousel-container { 
@@ -71,22 +71,15 @@ hr { border: 0; border-top: 1px solid #333; margin: 30px 0; }
     box-sizing: border-box;
 }
 
-/* --- LÓGICA ATUALIZADA (Grid Desktop / Flex Mobile) --- */
 .carousel { 
-    display: grid; 
-    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    display: flex; 
     gap: 15px; 
+    overflow-x: auto; 
+    scrollbar-width: none; 
+    scroll-behavior: smooth; 
+    padding: 10px 0;
     width: 100%;
-}
-@media (max-width: 768px) {
-    .carousel { 
-        display: flex; 
-        overflow-x: auto; 
-        scrollbar-width: none; 
-        scroll-behavior: smooth; 
-        padding: 10px 0;
-        flex-wrap: nowrap;
-    }
+    flex-wrap: nowrap;
 }
 
 /* --- ARROWS --- */
@@ -105,17 +98,25 @@ hr { border: 0; border-top: 1px solid #333; margin: 30px 0; }
 }
 .left { left: 0; }
 .right { right: 0; }
-@media (max-width: 768px) { .arrow { display: none; } }
 
 /* --- CARDS --- */
-.card { transition: transform 0.3s ease; }
+.card { 
+    min-width: 160px; 
+    max-width: 160px; 
+    flex: 0 0 160px; 
+    transition: transform 0.3s ease; 
+}
 .card img { 
-    width: 100%; height: 240px; object-fit: cover; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.3); display: block; 
+    width: 100%; 
+    height: 240px; 
+    object-fit: cover; /* Impede cortes errados */
+    border-radius: 8px; 
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3); 
+    display: block;
 }
 .card:hover { transform: scale(1.05); }
 .card-info { padding: 10px 0; }
 .card-title { font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
-@media (max-width: 768px) { .card { min-width: 120px; max-width: 120px; } .card img { height: 180px; } }
 
 /* --- FILTROS (TABS) --- */
 .tabs { display: flex; gap: 10px; margin-left: 20px; margin-bottom: 15px; }
@@ -204,6 +205,3 @@ iframe {
 /* Correções extras para garantir que nada corte */
 img { max-width: 100%; height: auto; }
 section { overflow: hidden; }
-
-/* Espaçamento final de segurança */
-.spacer { height: 50px; }
