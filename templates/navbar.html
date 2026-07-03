@@ -1,21 +1,24 @@
 <nav class="navbar">
-        <div class="logo">SONO<span>FLIX</span></div>
+    <div class="logo">SONO<span>FLIX</span></div>
+
+    <input type="checkbox" id="menu-toggle" class="menu-toggle-checkbox">
+    <label for="menu-toggle" class="menu-toggle-btn" aria-label="Abrir menu">
+        <span></span>
+        <span></span>
+        <span></span>
+    </label>
+
+    <div class="nav-menu">
         <ul>
             <li><a href="/">Início</a></li>
             <li><a href="/explorar/movie">Filmes</a></li>
-            <li><a href="/explorar/series">Séries</a></li> 
-            <li><a href="/explorar/anime">Animes</a></li> </ul>
-           
+            <li><a href="/explorar/series">Séries</a></li>
+            <li><a href="/explorar/anime">Animes</a></li>
         </ul>
-        <form action="/buscar" method="GET" class="search-box">
-        <input type="text" name="query" placeholder="Pesquisar títulos..." required>
-        <button type="submit">🔍</button>
-    </form>
-</nav>
 
-<style>
-    .search-box { display: flex; align-items: center; background: #1a1a1a; border: 1px solid #333; border-radius: 20px; padding: 5px 15px; }
-    .search-box input { background: transparent; border: none; color: white; padding: 5px; outline: none; }
-    .search-box button { background: none; border: none; color: white; cursor: pointer; }
-</style>
-        
+        <form action="/buscar" method="GET" class="search-box">
+            <input type="text" name="query" placeholder="Pesquisar títulos..." required>
+            <button type="submit">🔍</button>
+        </form>
+    </div>
+</nav>
