@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    {% include 'navbar.html' %}
+    
+    <h2 style="padding: 100px 5% 20px;">Resultados para: "{{ query }}"</h2>
+    
+    <div class="grid-container">
+        {% for item in data.results %}
+            {% if item.poster_path %}
+            <div class="card">
+                <a href="/detalhes/{{ item.media_type }}/{{ item.id }}">
+                    <img src="https://image.tmdb.org/t/p/w500{{ item.poster_path }}">
+                </a>
+            </div>
+            {% endif %}
+        {% endfor %}
+    </div>
+</body>
+</html>

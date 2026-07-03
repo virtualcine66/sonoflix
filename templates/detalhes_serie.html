@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ item.title }} - SONOFLIX</title>
+    <style>
+        /* O prefixo .bloqueio-ads garante que o CSS de bloqueio só afete esta área */
+        .bloqueio-ads div[class*="popup"], 
+        .bloqueio-ads div[id*="ad"],
+        .bloqueio-ads iframe[src*="ad"] {
+            display: none !important;
+            pointer-events: none !important;
+        }
+
+        * { box-sizing: border-box; }
+        body { background: #000; color: white; font-family: 'Helvetica Neue', Arial, sans-serif; margin: 0; }
+        .hero-bg { position: absolute; top: 0; left: 0; width: 100%; height: 70vh; background: url('{{ item.backdrop }}') center/cover; filter: blur(20px) brightness(0.4); z-index: -1; }
+        .container { max-width: 1000px; margin: auto; padding: 40px 20px; }
+        
+        .details-wrapper { display: flex; gap: 40px; margin-top: 50px; align-items: flex-start; }
+        .poster { width: 300px; border-radius: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .info h1 { font-size: 3rem; margin: 0 0 15px 0; }
+        .meta { display: flex; gap: 20px; color: #a3a3a3; margin-bottom: 20px; }
+        .sinopse { font-size: 1.1rem; line-height: 1.6; color: #e5e5e5; }
+
+        /* Estilo do Player e Temporadas */
+        .player-wrapper { width: 100%; aspect-ratio: 16/9; background: #0c0c0c; border: 1px solid #222; border-radius: 12px; overflow: hidden; margin-bottom: 30px; }
+        .btn-temporada { width: 100%; padding: 15px; background: #1a1a1a; color: white; border: 1px solid #333; text-align: left; cursor: pointer; border-radius: 4px; font-weight: bold; margin-bottom: 5px; }
+        .episodios-lista { padding: 10px; background: #111; border: 1px solid #222; margin-bottom: 10px; display: none; }
+        .ep-item { padding: 12px; cursor: pointer; border-bottom: 1px solid #222; transition: background 0.2s; }
+        .ep-item:hover { color: #e50914; background: #222; }
+    </style>
+</head>
+<body>
+
+    <div class="hero-bg"></div>
+
+    <div class="container">
+        <a href="/" style="color: white; text-decoration: none; opacity: 0.7;">← Voltar</a>
+        
+        <div class="details-wrapper">
+            <img src="{{ item.poster }}" alt="{{ item.title }}" class="poster">
+            <div class="info">
+                <h1>{{ item.title }}</h1>
+                <div class="meta">
+                    <span>{{ item.ano }}</span>
+                    <span>⭐ {{ item.nota }}/10</span>
+                </div>
+                <p class="sinopse">{{ item.overview }}</p>
+            </div>
+        </div>
+
+        <div id="player-anchor"></div>
+        
+        <div class="bloqueio-ads">
+            <div id="player-container" class="player-wrapper">
+                <p style="text-align:center; padding-top:100px; color:#555;">Selecione um episódio abaixo para começar</p>
+            </div>
+        </div>
+
+        <h3>Temporadas</h3>
+        {% for temporada in item.temporadas %}
+        <div class="temporada-wrapper">
+            <button class="btn-temporada" onclick="carregarEpisodios(this, '{{ item.id }}', '{{ temporada.season_number }}')">
+                {{ temporada.name }} <span>▼</span>
+            </button>
+            <div class="episodios-lista"></div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <script>
+        // INTERVENÇÃO ANTI-ANÚNCIOS (Monitora o DOM apenas dentro da área protegida)
+        const areaProtegida = document.querySelector('.bloqueio-ads');
+        
+        if (areaProtegida) {
+            const observer = new MutationObserver(() => {
+                const adSelectors = [
+                    'div[id*="ad"]', 'div[class*="popup"]', 'iframe[src*="ad"]', 
+                    '.ad-overlay', '.ad-container', 'div[style*="z-index: 9999"]'
+                ];
+                adSelectors.forEach(selector => {
+                    areaProtegida.querySelectorAll(selector).forEach(el => el.remove());
+                });
+            });
+            observer.observe(areaProtegida, { childList: true, subtree: true });
+        }
+
+        // Lógica de Séries
+        async function carregarEpisodios(btn, serieId, seasonNum) {
+            const container = btn.nextElementSibling;
+            if (container.style.display === 'block') { container.style.display = 'none'; return; }
+
+            if (container.innerHTML.trim() === '') {
+                const res = await fetch(`/api/episodios/${serieId}/${seasonNum}`);
+                const data = await res.json();
+                
+                const epList = data.episodes || [];
+                container.innerHTML = epList.map(ep => `
+                    <div class="ep-item" onclick="trocarEpisodio('${serieId}', '${seasonNum}', '${ep.episode_number}')">
+                        <b>Ep ${ep.episode_number}:</b> ${ep.name}
+                    </div>`).join('');
+            }
+            container.style.display = 'block';
+        }
+
+        function trocarEpisodio(id, s, e) {
+            document.getElementById('player-container').innerHTML = `
+                <iframe src="https://myembed.biz/serie/${id}/${s}/${e}" 
+                style="width:100%; height:100%; border:none;" 
+                allow="autoplay; fullscreen; encrypted-media; picture-in-picture" allowfullscreen></iframe>`;
+            document.getElementById('player-anchor').scrollIntoView({ behavior: 'smooth' });
+        }
+    </script>
+</body>
+</html>

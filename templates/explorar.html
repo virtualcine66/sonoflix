@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>SONOFLIX</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 20px;
+            padding: 20px 5%;
+            margin-top: 20px;
+        }
+        .filter-panel {
+            display: flex;
+            gap: 15px;
+            padding: 20px 5%;
+            background: #1a1a1a;
+            margin-top: 80px;
+            justify-content: center;
+        }
+        .pagination { padding: 20px; text-align: center; }
+        .btn-page { background: #1a1a1a; color: white; border: 1px solid #333; padding: 10px 15px; margin: 5px; cursor: pointer; border-radius: 4px; }
+        .btn-page.active { background: #e50914; border-color: #e50914; }
+    </style>
+</head>
+<body>
+
+    {% include 'navbar.html' %}
+
+    <div class="filter-panel">
+        <select id="genero" onchange="carregarExplorar(1)">
+            <option value="">Todos os Gêneros</option>
+        </select>
+        <select id="ano" onchange="carregarExplorar(1)">
+            <option value="">Todos os Anos</option>
+        </select>
+        <select id="ordem" onchange="carregarExplorar(1)">
+            <option value="popularity.desc">Mais Populares</option>
+            <option value="vote_average.desc">Melhor Avaliados</option>
+        </select>
+    </div>
+
+    <div class="grid-container" id="results-grid"></div>
+
+    <div class="pagination" id="page-buttons"></div>
+
+    <script>
+        // Passamos a variável do Flask para o JS
+        const TIPO = "{{ tipo }}";
+    </script>
+    <script src="{{ url_for('static', filename='js/explorar.js') }}"></script>
+</body>
+</html>

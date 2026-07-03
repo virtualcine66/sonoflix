@@ -1,0 +1,21 @@
+<nav class="navbar">
+        <div class="logo">SONO<span>FLIX</span></div>
+        <ul>
+            <li><a href="/">Início</a></li>
+            <li><a href="/explorar/movie">Filmes</a></li>
+            <li><a href="/explorar/series">Séries</a></li> 
+            <li><a href="/explorar/anime">Animes</a></li> </ul>
+           
+        </ul>
+        <form action="/buscar" method="GET" class="search-box">
+        <input type="text" name="query" placeholder="Pesquisar títulos..." required>
+        <button type="submit">🔍</button>
+    </form>
+</nav>
+
+<style>
+    .search-box { display: flex; align-items: center; background: #1a1a1a; border: 1px solid #333; border-radius: 20px; padding: 5px 15px; }
+    .search-box input { background: transparent; border: none; color: white; padding: 5px; outline: none; }
+    .search-box button { background: none; border: none; color: white; cursor: pointer; }
+</style>
+        

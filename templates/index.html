@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>SONOFLIX</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+    {% include 'navbar.html' %}
+
+    <header class="hero" style="background-image: linear-gradient(to top, #141414, transparent), url('https://image.tmdb.org/t/p/original/xOMo8BRK7PfcJv9JCnx7s5hj0PX.jpg');">
+        <div class="container">
+            <h1>Duna: Parte 2</h1>
+            <button onclick="window.location.href='/detalhes/movie/693134'">ASSISTIR AGORA</button>
+        </div>
+    </header>
+
+    <div class="container" id="main-content">
+        <!-- O main.js preencherá tudo aqui automaticamente -->
+    </div>
+
+    <footer><p>© 2026 SONOFLIX - Todos os direitos reservados</p></footer>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

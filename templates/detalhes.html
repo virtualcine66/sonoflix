@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ item.title }} - StreamDemo</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+    <div class="container">
+        <a href="/" style="color: #aaa; text-decoration: none;">← Voltar ao início</a>
+        
+        <div class="info-header" style="margin-top: 20px;">
+            <img src="{{ item.poster }}" alt="{{ item.title }}" class="poster">
+            <div class="details-text">
+                <h1>{{ item.title }}</h1>
+                <p><strong>Ano:</strong> {{ item.ano }}</p>
+                <p><strong>Duração:</strong> {{ item.duracao }} min</p>
+                <p><strong>Avaliação:</strong> ⭐ {{ item.nota }} / 10</p>
+            </div>
+        </div>
+        
+        <hr> 
+        
+        <button class="btn-assistir" onclick="carregarPlayer()">▶ CARREGAR VÍDEO</button>
+
+        <div class="bloqueio-ads">
+            <div id="player-container" class="player-wrapper">
+                <div id="placeholder" style="height:100%; display:flex; align-items:center; justify-content:center; color:#666;">
+                    Clique no botão acima para carregar o player
+                </div>
+            </div>
+        </div>
+
+        <hr> 
+        
+        <h3>Sinopse</h3>
+        <p style="line-height: 1.6; color: #ccc;">{{ item.overview }}</p>
+    </div>
+
+    <script>window.PLAYER_URL = "{{ item.url_player }}";</script>
+    <script src="{{ url_for('static', filename='js/player.js') }}"></script>
+    <script>
