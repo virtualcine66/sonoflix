@@ -7,8 +7,9 @@
 }
 
 /* --- DESIGN ORIGINAL --- */
-body { background: #111; color: white; font-family: sans-serif; margin: 0; padding: 20px; }
-.container { max-width: 900px; margin: auto; }
+* { box-sizing: border-box; } /* Ajuste global para evitar cortes nas bordas */
+body { background: #111; color: white; font-family: sans-serif; margin: 0; padding: 20px; overflow-x: hidden; }
+.container { max-width: 900px; margin: auto; width: 100%; }
 .info-header { display: flex; gap: 20px; margin-bottom: 20px; }
 .poster { width: 200px; border-radius: 8px; flex-shrink: 0; }
 .details-text { display: flex; flex-direction: column; justify-content: center; }
@@ -25,6 +26,7 @@ hr { border: 0; border-top: 1px solid #333; margin: 30px 0; }
 .navbar {
     position: fixed;
     top: 0;
+    left: 0;
     width: 100%;
     height: 70px;
     background-color: rgba(20, 20, 20, 0.95);
@@ -38,7 +40,7 @@ hr { border: 0; border-top: 1px solid #333; margin: 30px 0; }
 
 .logo { font-size: 1.5rem; font-weight: 600; color: #e50914; text-transform: uppercase; }
 .logo span { color: #ffffff; }
-.navbar ul { list-style: none; display: flex; gap: 20px; }
+.navbar ul { list-style: none; display: flex; gap: 20px; margin: 0; }
 .navbar a { color: #e5e5e5; text-decoration: none; font-size: 1rem; transition: color 0.3s; }
 .navbar a:hover { color: #e50914; }
 
@@ -61,12 +63,11 @@ hr { border: 0; border-top: 1px solid #333; margin: 30px 0; }
 .category-section { margin-bottom: 40px; }
 .category-title { font-size: 1.4rem; margin-bottom: 15px; border-left: 4px solid #e50914; padding-left: 10px; }
 
-/* Isso impede que o container das setas perca o tamanho ou quebre */
 .carousel-container { 
     position: relative; 
     width: 100%; 
     padding: 0 40px; 
-    min-height: 240px; /* Garante que a altura não colapse enquanto carrega */
+    min-height: 240px;
     box-sizing: border-box;
 }
 
@@ -77,11 +78,11 @@ hr { border: 0; border-top: 1px solid #333; margin: 30px 0; }
     scrollbar-width: none; 
     scroll-behavior: smooth; 
     padding: 10px 0;
-    width: 100%; /* Força a largura */
+    width: 100%;
+    flex-wrap: nowrap;
 }
 
-/* Isso força as setas a ficarem fixas sempre no centro vertical da seção */
-/* --- ARROWS (CORRIGIDO) --- */
+/* --- ARROWS --- */
 .arrow { 
     position: absolute; 
     top: 50%; 
@@ -95,18 +96,24 @@ hr { border: 0; border-top: 1px solid #333; margin: 30px 0; }
     font-size: 20px;
     border-radius: 4px;
 }
-
-.left { 
-    left: 0; /* Força a seta esquerda para o início */
-}
-
-.right { 
-    right: 0; /* Força a seta direita para o fim */
-}
+.left { left: 0; }
+.right { right: 0; }
 
 /* --- CARDS --- */
-.card { min-width: 160px; max-width: 160px; flex: 0 0 160px; transition: transform 0.3s ease; }
-.card img { width: 100%; height: 240px; object-fit: cover; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.3); }
+.card { 
+    min-width: 160px; 
+    max-width: 160px; 
+    flex: 0 0 160px; 
+    transition: transform 0.3s ease; 
+}
+.card img { 
+    width: 100%; 
+    height: 240px; 
+    object-fit: cover; /* Impede cortes errados */
+    border-radius: 8px; 
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3); 
+    display: block;
+}
 .card:hover { transform: scale(1.05); }
 .card-info { padding: 10px 0; }
 .card-title { font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
@@ -126,12 +133,12 @@ footer { text-align: center; padding: 40px; background-color: #111; color: #666;
 .btn-temporada { width: 100%; background: #333; color: white; padding: 15px; border: none; border-radius: 4px; margin-top: 5px; cursor: pointer; }
 .btn-temporada:hover { background: #444; }
 
-/* Adicione isso ao seu style.css */
+/* --- GRID E LAYOUT --- */
 .category-section {
     position: relative;
     width: 100%;
     margin-bottom: 40px;
-    display: block; /* Garante que uma seção fique embaixo da outra */
+    display: block;
     clear: both;
 }
 
@@ -144,11 +151,10 @@ footer { text-align: center; padding: 40px; background-color: #111; color: #666;
 
 .grid-container {
     display: grid;
-    /* Isso permite que o grid tenha NO MÁXIMO 5 colunas, 
-       mas se a tela for menor ou o número de itens for ímpar, ele flui melhor */
     grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
     gap: 20px;
     padding: 20px 5%;
+    width: 100%;
 }
 
 .filter-panel {
@@ -166,25 +172,23 @@ footer { text-align: center; padding: 40px; background-color: #111; color: #666;
 .btn-page.active { background: #e50914; border-color: #e50914; }
 .btn-page:hover { background: #333; }
 
-/* Ajuste do select para ficar bonito */
 select {
     background: #111; color: white; padding: 10px;
     border: 1px solid #444; border-radius: 4px; cursor: pointer;
 }
 
-/* Adicione isso ao seu CSS para ficar conforme a recomendação da API */
 iframe {
     width: 100% !important;
     height: 100% !important;
     aspect-ratio: 16/9;
+    border: none;
 }
 
-/* Isso tenta esconder a sobreposição de anúncios se o elemento tiver a classe certa */
 .ad-overlay, .popup-container, .video-ads {
     display: none !important;
 }
 
-/* --- ZONA PROTEGIDA ANTI-ANÚNCIOS (Apenas para Players) --- */
+/* --- ZONA PROTEGIDA ANTI-ANÚNCIOS (Players) --- */
 .bloqueio-ads div[class*="popup"], 
 .bloqueio-ads div[id*="ad"],
 .bloqueio-ads iframe[src*="ad"],
@@ -197,3 +201,7 @@ iframe {
     height: 0 !important;
     width: 0 !important;
 }
+
+/* Correções extras para garantir que nada corte */
+img { max-width: 100%; height: auto; }
+section { overflow: hidden; }
