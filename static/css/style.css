@@ -71,11 +71,11 @@ hr { border: 0; border-top: 1px solid #333; margin: 30px 0; }
     box-sizing: border-box;
 }
 
-/* LÓGICA RESPONSIVA ATUALIZADA */
+/* --- LÓGICA ATUALIZADA (Grid Desktop / Flex Mobile) --- */
 .carousel { 
-    display: grid;
+    display: grid; 
     grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-    gap: 15px;
+    gap: 15px; 
     width: 100%;
 }
 @media (max-width: 768px) {
@@ -91,8 +91,17 @@ hr { border: 0; border-top: 1px solid #333; margin: 30px 0; }
 
 /* --- ARROWS --- */
 .arrow { 
-    position: absolute; top: 50%; transform: translateY(-50%); z-index: 10; 
-    background: rgba(0,0,0,0.7); border: none; color: white; padding: 15px; cursor: pointer; font-size: 20px; border-radius: 4px;
+    position: absolute; 
+    top: 50%; 
+    transform: translateY(-50%); 
+    z-index: 10; 
+    background: rgba(0,0,0,0.7); 
+    border: none; 
+    color: white; 
+    padding: 15px; 
+    cursor: pointer; 
+    font-size: 20px;
+    border-radius: 4px;
 }
 .left { left: 0; }
 .right { right: 0; }
@@ -106,7 +115,7 @@ hr { border: 0; border-top: 1px solid #333; margin: 30px 0; }
 .card:hover { transform: scale(1.05); }
 .card-info { padding: 10px 0; }
 .card-title { font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
-@media (max-width: 768px) { .card { min-width: 130px; max-width: 130px; } .card img { height: 190px; } }
+@media (max-width: 768px) { .card { min-width: 120px; max-width: 120px; } .card img { height: 180px; } }
 
 /* --- FILTROS (TABS) --- */
 .tabs { display: flex; gap: 10px; margin-left: 20px; margin-bottom: 15px; }
@@ -124,17 +133,59 @@ footer { text-align: center; padding: 40px; background-color: #111; color: #666;
 .btn-temporada:hover { background: #444; }
 
 /* --- GRID E LAYOUT --- */
-.category-section { position: relative; width: 100%; margin-bottom: 40px; display: block; clear: both; }
-.grid-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 20px; padding: 20px; }
-.grid-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 20px; padding: 20px 5%; width: 100%; }
-.filter-panel { background: #0d0d0d; padding: 20px; margin-bottom: 20px; border-radius: 8px; border: 1px solid #333; }
-.btn-page { background: #1a1a1a; color: white; border: 1px solid #333; padding: 10px 20px; margin: 5px; cursor: pointer; border-radius: 4px; }
+.category-section {
+    position: relative;
+    width: 100%;
+    margin-bottom: 40px;
+    display: block;
+    clear: both;
+}
+
+.grid-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 20px;
+    padding: 20px;
+}
+
+.grid-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 20px;
+    padding: 20px 5%;
+    width: 100%;
+}
+
+.filter-panel {
+    background: #0d0d0d;
+    padding: 20px;
+    margin-bottom: 20px;
+    border-radius: 8px;
+    border: 1px solid #333;
+}
+
+.btn-page {
+    background: #1a1a1a; color: white; border: 1px solid #333;
+    padding: 10px 20px; margin: 5px; cursor: pointer; border-radius: 4px;
+}
 .btn-page.active { background: #e50914; border-color: #e50914; }
 .btn-page:hover { background: #333; }
-select { background: #111; color: white; padding: 10px; border: 1px solid #444; border-radius: 4px; cursor: pointer; }
 
-iframe { width: 100% !important; height: 100% !important; aspect-ratio: 16/9; border: none; }
-.ad-overlay, .popup-container, .video-ads { display: none !important; }
+select {
+    background: #111; color: white; padding: 10px;
+    border: 1px solid #444; border-radius: 4px; cursor: pointer;
+}
+
+iframe {
+    width: 100% !important;
+    height: 100% !important;
+    aspect-ratio: 16/9;
+    border: none;
+}
+
+.ad-overlay, .popup-container, .video-ads {
+    display: none !important;
+}
 
 /* --- ZONA PROTEGIDA ANTI-ANÚNCIOS (Players) --- */
 .bloqueio-ads div[class*="popup"], 
@@ -143,7 +194,11 @@ iframe { width: 100% !important; height: 100% !important; aspect-ratio: 16/9; bo
 .bloqueio-ads .ad-overlay, 
 .bloqueio-ads .popup-container, 
 .bloqueio-ads .video-ads {
-    display: none !important; visibility: hidden !important; pointer-events: none !important; height: 0 !important; width: 0 !important;
+    display: none !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+    height: 0 !important;
+    width: 0 !important;
 }
 
 /* Correções extras para garantir que nada corte */
