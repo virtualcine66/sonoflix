@@ -80,6 +80,7 @@ hr { border: 0; border-top: 1px solid #333; margin: 30px 0; }
     padding: 10px 0;
     width: 100%;
     flex-wrap: nowrap;
+    flex: 1 1 auto; /* Mantém a fluidez */
 }
 
 /* --- ARROWS --- */
@@ -117,6 +118,13 @@ hr { border: 0; border-top: 1px solid #333; margin: 30px 0; }
 .card:hover { transform: scale(1.05); }
 .card-info { padding: 10px 0; }
 .card-title { font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
+
+/* Ajuste fino para Zoom no Mobile */
+@media (max-width: 600px) {
+    body { padding: 10px; } /* Menos margem no corpo */
+    .card { min-width: 130px; max-width: 130px; flex: 0 0 130px; } /* Zoom: cards levemente maiores */
+    .card img { height: 200px; }
+}
 
 /* --- FILTROS (TABS) --- */
 .tabs { display: flex; gap: 10px; margin-left: 20px; margin-bottom: 15px; }
