@@ -4,27 +4,32 @@
     {
       "name": "catalog.sqlite.gz.part001",
       "size": 20000000,
-      "sha256": "a3c87698b60542223cdeec606ce712a5d7f91dd3e89f4e5179fac2a0f92acbee"
+      "sha256": "19b18b2f0d50972ee4a946cbe18a39b32e634dad10ca1a68dbda1b7a8a7974ba"
     },
     {
       "name": "catalog.sqlite.gz.part002",
       "size": 20000000,
-      "sha256": "1cb696eb8923ed11ac422b9cf294f20402e743fcda095644b7ce2b6bead21d46"
+      "sha256": "a3d156c367117409d0ee6c232748e84bc9a8ff88fc889654208ffbe19e8db0c8"
     },
     {
       "name": "catalog.sqlite.gz.part003",
       "size": 20000000,
-      "sha256": "f5ebb296d538b7afdccb7a025027db2b4a337b3bdb2b25c74a5aa49226e16ac1"
+      "sha256": "fdd78cf609486df25c30ce62596e1560e0e0aeaf866ee1747b23ba1b3ae66713"
     },
     {
       "name": "catalog.sqlite.gz.part004",
       "size": 20000000,
-      "sha256": "3b07b14657a85ce20d325c6208c5f4e570c6b654c39fd0c64d217ccfeb714b5b"
+      "sha256": "a02bda2ad144026a3b8b16550cb6c732737c442290992d8d860b1ee10eb7b5f6"
     },
     {
       "name": "catalog.sqlite.gz.part005",
-      "size": 16382637,
-      "sha256": "d0f6faf6879252746adb74fc2b4e9e009695f02994856f601570aae70236583a"
+      "size": 20000000,
+      "sha256": "0a4ba63d118b61e4802e761045a7681f0f9153b019d1d9ddc069f08f717e8985"
+    },
+    {
+      "name": "catalog.sqlite.gz.part006",
+      "size": 2991609,
+      "sha256": "b4be61dca895a9cc2e5711146860e8b48d02778eb1c882dad6d66b55a49d76fd"
     }
   ]
 }
