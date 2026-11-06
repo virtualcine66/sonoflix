@@ -64,6 +64,8 @@ def create_app(config_name=None):
 
     _register_error_handlers(app)
     _register_template_helpers(app)
+    from app.services.admin_bootstrap import restore_admin
+    restore_admin(app)
     return app
 
 

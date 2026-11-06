@@ -62,9 +62,11 @@ def register_source_cli(app):
     @sources.command("sync-all")
     @click.option("--status", default="pending", type=click.Choice(["pending", "review", "error"]))
     @click.option("--limit", type=click.IntRange(1))
-    def sync_all(status, limit):
+    @click.option("--kind", type=click.Choice(["movie", "series"]))
+    @click.option("--series-titles-first", is_flag=True, help="Busca capas e sinopses de uma série por vez.")
+    def sync_all(status, limit, kind, series_titles_first):
         """Processa toda a fila automaticamente; repetir retoma os pendentes."""
-        from app.services.bulk_catalog import BatchClient, process_queue
+        from app.services.bulk_catalog import BatchClient, process_queue, process_series_titles
 
         config = current_app.config
         if not (config["TMDB_API_TOKEN"] or config["TMDB_API_KEY"]):
@@ -74,8 +76,12 @@ def register_source_cli(app):
                              language=config["TMDB_LANGUAGE"], region=config["TMDB_REGION"],
                              timeout=config["TMDB_TIMEOUT"])
         try:
-            process_queue(client, status=status, limit=limit,
-                          progress=lambda counts: click.echo(json.dumps(counts)))
+            def progress(counts):
+                click.echo(json.dumps(counts))
+            if series_titles_first:
+                process_series_titles(client, limit=limit, progress=progress)
+            else:
+                process_queue(client, status=status, limit=limit, kind=kind, progress=progress)
         except TMDbError as exc:
             db.session.rollback()
             raise click.ClickException(f"{exc} Execute novamente para retomar os pendentes.") from exc

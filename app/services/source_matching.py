@@ -2,6 +2,7 @@
 from app.extensions import db
 from app.models import Episode, Movie, Season, Series
 from app.services.importer import import_title
+from app.services.tmdb import TMDbError
 from app.utils import parse_date, slugify
 
 
@@ -23,7 +24,12 @@ def attach(source, tmdb_id, client):
         season = item.seasons.filter_by(season_number=source.season_number).first()
         episode = season.episodes.filter_by(episode_number=source.episode_number).first() if season else None
         if episode is None or not episode.description:
-            detail = client.season(tmdb_id, source.season_number)
+            try:
+                detail = client.season(tmdb_id, source.season_number)
+            except TMDbError as exc:
+                if exc.status_code == 404:
+                    raise ValueError('Temporada não encontrada no TMDB.') from exc
+                raise
             info = next((e for e in detail.get("episodes", [])
                          if e.get("episode_number") == source.episode_number), None)
             if not info:
@@ -46,6 +52,17 @@ def attach(source, tmdb_id, client):
 
 
 def match(source, client, allow_unique_title=False):
+    from app.services.source_catalog import source_key
+
+    known = None
+    if source.movie_id:
+        known = db.session.get(Movie, source.movie_id)
+    elif source.episode_id:
+        known = db.session.get(Episode, source.episode_id).season.series
+    if (known is not None and known.tmdb_id and known.catalog_key
+            == source_key(source.kind, source.search_title, source.year)):
+        attach(source, known.tmdb_id, client)
+        return
     if source.kind == "series" and source.episode_number is None:
         source.match_status = "review"
         source.candidates = []

@@ -18,6 +18,11 @@ VIDEO_LANGUAGES = "pt,en,null"
 class TMDbError(RuntimeError):
     """Erro de comunicação com o TMDb, com mensagem pronta para exibir ao usuário."""
 
+    def __init__(self, message, retryable=False, status_code=None):
+        super().__init__(message)
+        self.retryable = retryable
+        self.status_code = status_code
+
 
 class TMDbNotConfigured(TMDbError):
     pass
@@ -73,16 +78,16 @@ class TMDbClient:
         try:
             response = self.session.get(BASE_URL + path, params=params, headers=headers, timeout=self.timeout)
         except requests.RequestException as exc:
-            raise TMDbError("Não foi possível conectar ao TMDb. Verifique sua conexão.") from exc
+            raise TMDbError("Não foi possível conectar ao TMDb. Verifique sua conexão.", retryable=True) from exc
 
         if response.status_code == 401:
             raise TMDbError("A credencial do TMDb é inválida. Confira o .env.")
         if response.status_code == 404:
-            raise TMDbError("Título não encontrado no TMDb.")
+            raise TMDbError("Título não encontrado no TMDb.", status_code=404)
         if response.status_code == 429:
-            raise TMDbError("O TMDb limitou as requisições. Tente de novo em alguns segundos.")
+            raise TMDbError("O TMDb limitou as requisições. Tente de novo em alguns segundos.", retryable=True)
         if not response.ok:
-            raise TMDbError(f"O TMDb respondeu com erro {response.status_code}.")
+            raise TMDbError(f"O TMDb respondeu com erro {response.status_code}.", retryable=response.status_code >= 500)
 
         data = response.json()
         if len(self._cache) >= 512:

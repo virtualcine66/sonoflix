@@ -83,3 +83,16 @@ HLS pode exigir CORS nos segmentos/chaves; codecs precisam ser suportados pelo a
 Fornecedores podem bloquear o IP do servidor ou entregar links expirados.
 A integração de todas as fontes não significa que todas as mídias foram reproduzidas ou validadas.
 A URL final é visível ao navegador; criptografia protege o armazenamento, não oculta o tráfego de reprodução.
+
+ATUALIZAÇÃO: ADMINISTRADOR E PROCESSAMENTO COMPLETO
+Com ADMIN_USER, ADMIN_EMAIL e ADMIN_PASSWORD configurados no Render, o administrador
+é recriado automaticamente após a restauração do banco. A senha deve ter ao menos 8 caracteres.
+As credenciais não são incluídas no snapshot e não devem ser publicadas no GitHub.
+
+O processamento completo é executado por scripts/complete_catalog.py, em três etapas:
+1. Capas e informações das séries; 2. Filmes pendentes; 3. Detalhes dos episódios.
+Com --publish, um snapshot é exportado e enviado ao GitHub ao concluir cada etapa.
+O script precisa do computador ligado, internet e autenticação Git já autorizada.
+Estado: instance/catalog-job.json; log: instance/catalog-complete.log no clone de publicação.
+Falhas de rede têm novas tentativas; em falha persistente, o estado fica failed e a fila pode ser retomada.
+Correspondências ambíguas não recebem informações inventadas.
