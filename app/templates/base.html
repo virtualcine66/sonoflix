@@ -1,0 +1,103 @@
+{% import "components/ui.html" as ui with context %}
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% if title and title != "Início" %}{{ title }} · {% endif %}Filmes &amp; Séries</title>
+  <meta name="description" content="{% block description %}Catálogo de filmes e séries com sinopses, elenco, trailers oficiais e a sua lista de favoritos.{% endblock %}">
+  <meta name="csrf-token" content="{{ csrf_token() }}">
+  <meta name="theme-color" content="#0b0d12">
+  <meta property="og:site_name" content="Filmes & Séries">
+  <meta property="og:title" content="{{ title or 'Filmes & Séries' }}">
+  {% block meta %}{% endblock %}
+  <link rel="icon" href="{{ url_for('static', filename='img/favicon.svg') }}" type="image/svg+xml">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <script src="{{ url_for('static', filename='js/main.js') }}" defer></script>
+  {% block extra_head %}{% endblock %}
+</head>
+<body class="{% block body_class %}{% endblock %}">
+  {% include "components/icons.html" %}
+  <a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
+
+  <header class="site-header" data-header>
+    <div class="container header-inner">
+      <a class="brand" href="{{ url_for('main.index') }}" aria-label="Filmes & Séries, página inicial">
+        {{ ui.icon("logo", "brand-mark") }}<span>Filmes <em>&amp;</em> Séries</span>
+      </a>
+
+      <nav class="site-nav" id="site-nav" aria-label="Principal" data-nav>
+        {% set endpoint = request.endpoint or "" %}
+        <a href="{{ url_for('main.index') }}" {% if endpoint == 'main.index' %}aria-current="page"{% endif %}>Início</a>
+        <a href="{{ url_for('main.movies') }}" {% if endpoint in ('main.movies', 'main.movie_detail') %}aria-current="page"{% endif %}>Filmes</a>
+        <a href="{{ url_for('main.series') }}" {% if endpoint in ('main.series', 'main.series_detail') %}aria-current="page"{% endif %}>Séries</a>
+        {% if current_user.is_authenticated %}
+          <a href="{{ url_for('main.profile') }}" {% if endpoint == 'main.profile' %}aria-current="page"{% endif %}>Minha lista</a>
+        {% endif %}
+      </nav>
+
+      <form class="search" action="{{ url_for('main.search') }}" method="get" role="search" data-search>
+        {{ ui.icon("search", "icon search-icon") }}
+        <input class="search-input" type="search" name="query" placeholder="Buscar títulos, atores, diretores…"
+               value="{{ query if query is defined and query else '' }}" autocomplete="off" maxlength="100"
+               aria-label="Buscar no catálogo" role="combobox" aria-expanded="false"
+               aria-controls="search-suggestions" aria-autocomplete="list" data-search-input>
+        <ul class="suggestions" id="search-suggestions" role="listbox" hidden data-suggestions></ul>
+      </form>
+
+      <div class="account">
+        {% if current_user.is_authenticated %}
+          <details class="menu" data-menu>
+            <summary class="avatar" aria-label="Menu da conta">{{ current_user.username[:1]|upper }}</summary>
+            <div class="menu-panel">
+              <p class="menu-user"><strong>{{ current_user.username }}</strong><span>{{ current_user.email }}</span></p>
+              <a href="{{ url_for('main.profile') }}">Minha lista</a>
+              {% if current_user.is_admin %}<a href="{{ url_for('admin.dashboard') }}">Painel admin</a>{% endif %}
+              <form method="post" action="{{ url_for('auth.logout') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit">Sair</button>
+              </form>
+            </div>
+          </details>
+        {% else %}
+          <a class="btn btn-ghost btn-sm" href="{{ url_for('auth.login', next=request.full_path if endpoint not in ('auth.login', 'auth.register') else None) }}">Entrar</a>
+          <a class="btn btn-primary btn-sm hide-sm" href="{{ url_for('auth.register') }}">Criar conta</a>
+        {% endif %}
+        <button class="icon-btn nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav"
+                aria-label="Abrir menu" data-nav-toggle>{{ ui.icon("menu", "icon when-closed") }}{{ ui.icon("close", "icon when-open") }}</button>
+      </div>
+    </div>
+  </header>
+
+  <main id="conteudo" class="{% block main_class %}page{% endblock %}">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="container flashes" role="status">
+          {% for category, message in messages %}
+            <div class="flash flash-{{ category }}" data-flash>
+              <span>{{ message }}</span>
+              <button type="button" class="icon-btn" aria-label="Fechar aviso" data-flash-close>{{ ui.icon("close") }}</button>
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <div>
+        <a class="brand brand-sm" href="{{ url_for('main.index') }}">{{ ui.icon("logo", "brand-mark") }}<span>Filmes <em>&amp;</em> Séries</span></a>
+        <p class="muted small">Projeto de portfólio: catálogo com Flask, SQLAlchemy e API REST própria.</p>
+      </div>
+      <div class="tmdb-credit">
+        <a class="tmdb-badge" href="https://www.themoviedb.org/" rel="noopener" target="_blank">Dados e imagens: <strong>TMDb</strong></a>
+        <p class="muted small">Este produto usa a API do TMDb, mas não é endossado nem certificado pelo TMDb.</p>
+      </div>
+    </div>
+    <div class="container footer-bottom muted small">© {{ current_year }} Filmes &amp; Séries · <a href="{{ url_for('api.list_items', kind='movie') }}">API pública</a></div>
+  </footer>
+</body>
+</html>

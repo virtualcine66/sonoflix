@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% import "components/ui.html" as ui with context %}
+
+{% block main_class %}page page-home{% endblock %}
+
+{% block content %}
+{% if featured %}
+<section class="hero{% if not featured.backdrop_url %} hero-no-image hue-{{ featured.placeholder_hue }}{% endif %}" aria-labelledby="hero-title">
+  {% if featured.backdrop_url %}
+    <img class="hero-backdrop" src="{{ featured.backdrop('w1280') }}" alt="" fetchpriority="high">
+  {% endif %}
+  <div class="container hero-content">
+    <p class="eyebrow">{{ featured.kind_label }} em destaque</p>
+    <h1 id="hero-title" class="hero-title">{{ featured.title }}</h1>
+    <p class="meta-line">
+      {{ ui.rating(featured.rating) }}
+      {% if featured.year %}<span>{{ featured.years_label if featured.kind == "series" else featured.year }}</span>{% endif %}
+      {% for genre in featured.genres[:3] %}<span>{{ genre.name }}</span>{% endfor %}
+    </p>
+    {% if featured.description %}<p class="hero-text">{{ featured.description }}</p>{% endif %}
+    <div class="actions">
+      <a class="btn btn-primary" href="{{ featured.url }}">{{ ui.icon("info") }} Ver detalhes</a>
+      {% if featured.trailer_key %}
+        <a class="btn btn-secondary" href="{{ featured.url }}#trailer">{{ ui.icon("play") }} Trailer</a>
+      {% endif %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<div class="container rails">
+  {% for rail in rails %}
+    {{ ui.rail(rail, loop.index) }}
+  {% else %}
+    {{ ui.empty_state("O catálogo ainda está vazio",
+                      "Rode “flask seed” no terminal ou importe títulos do TMDb pelo painel admin.",
+                      url_for('admin.import_search') if current_user.is_authenticated and current_user.is_admin else None,
+                      "Importar do TMDb") }}
+  {% endfor %}
+</div>
+{% endblock %}

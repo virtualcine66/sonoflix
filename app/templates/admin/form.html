@@ -1,0 +1,31 @@
+{% extends "admin/layout.html" %}
+{% import "components/ui.html" as ui with context %}
+
+{% block admin_content %}
+{# Campos longos ocupam a linha inteira; os demais ficam em duas colunas. #}
+{% set wide = ("TextAreaField", "MultiCheckboxField") %}
+<header class="page-head">
+  <div>
+    <a class="back-link" href="{{ back_url }}">{{ ui.icon("left") }} Voltar</a>
+    <h1>{{ title }}</h1>
+  </div>
+  {% if item is defined and item.tmdb_id %}
+    <span class="badge">Importado do TMDb · #{{ item.tmdb_id }}</span>
+  {% endif %}
+</header>
+
+<form method="post" class="panel form-grid" novalidate>
+  {{ form.hidden_tag() }}
+  {% set names = form.field_order if form.field_order is defined else form._fields.keys() %}
+  {% for name in names %}
+    {% set f = form[name] %}
+    {% if f.type not in ("CSRFTokenField", "SubmitField", "HiddenField") %}
+      {{ ui.field(f, "span-2" if f.type in wide else "") }}
+    {% endif %}
+  {% endfor %}
+  <div class="form-actions span-2">
+    <a class="btn btn-ghost" href="{{ back_url }}">Cancelar</a>
+    <button class="btn btn-primary" type="submit">{{ form.submit.label.text }}</button>
+  </div>
+</form>
+{% endblock %}

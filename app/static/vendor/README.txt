@@ -1,0 +1,1 @@
+HLS.js 1.7.3 - https://github.com/video-dev/hls.js - Apache-2.0

@@ -1,0 +1,124 @@
+{# Componentes reutilizáveis. Importe com: {% import "components/ui.html" as ui with context %} #}
+
+{% macro icon(name, cls="icon") -%}
+<svg class="{{ cls }}" aria-hidden="true" focusable="false"><use href="#i-{{ name }}"></use></svg>
+{%- endmacro %}
+
+{% macro poster(item, size="w342", eager=False) -%}
+{% if item.poster_url %}
+<img class="poster-img" src="{{ item.poster(size) }}" alt="" width="342" height="513"
+     {% if not eager %}loading="lazy"{% endif %} decoding="async">
+{% else %}
+<div class="poster-placeholder hue-{{ item.placeholder_hue }}" aria-hidden="true">
+  {{ icon("film" if item.kind == "movie" else "tv", "icon placeholder-icon") }}
+  <span>{{ item.title }}</span>
+</div>
+{% endif %}
+{%- endmacro %}
+
+{% macro rating(value, cls="") -%}
+{% if value %}<span class="rating {{ cls }}" title="Nota média">{{ icon("star") }}{{ value|score }}</span>{% endif %}
+{%- endmacro %}
+
+{% macro card(item) -%}
+<article class="card">
+  <a class="card-link" href="{{ item.url }}">
+    <div class="card-poster">
+      {{ poster(item) }}
+      {{ rating(item.rating, "card-rating") }}
+    </div>
+    <h3 class="card-title">{{ item.title }}</h3>
+    <p class="card-meta">{{ item.kind_label }}{% if item.year %} · {{ item.year }}{% endif %}</p>
+  </a>
+</article>
+{%- endmacro %}
+
+{% macro grid(items) -%}
+<div class="card-grid">
+  {% for item in items %}{{ card(item) }}{% endfor %}
+</div>
+{%- endmacro %}
+
+{% macro rail(r, index) -%}
+<section class="rail" aria-labelledby="rail-{{ index }}" data-rail>
+  <header class="rail-head">
+    <h2 id="rail-{{ index }}">{{ r.title }}</h2>
+    {% if r.link %}<a class="rail-more" href="{{ r.link }}">Ver tudo {{ icon("right") }}</a>{% endif %}
+    <div class="rail-controls">
+      <button class="icon-btn" type="button" data-rail-prev aria-label="Rolar para trás">{{ icon("left") }}</button>
+      <button class="icon-btn" type="button" data-rail-next aria-label="Rolar para frente">{{ icon("right") }}</button>
+    </div>
+  </header>
+  <div class="rail-track" data-rail-track>
+    {% for item in r.items %}{{ card(item) }}{% endfor %}
+  </div>
+</section>
+{%- endmacro %}
+
+{% macro favorite_button(item, is_favorite) -%}
+{% if current_user.is_authenticated %}
+<form method="post" action="{{ url_for('main.toggle_favorite', kind=item.kind, item_id=item.id) }}" class="inline-form">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <input type="hidden" name="next" value="{{ request.full_path }}">
+  <button type="submit" class="btn btn-secondary fav-btn" aria-pressed="{{ 'true' if is_favorite else 'false' }}"
+          data-favorite data-kind="{{ item.kind }}" data-id="{{ item.id }}">
+    {{ icon("plus", "icon when-off") }}{{ icon("check", "icon when-on") }}
+    <span class="when-off">Minha lista</span><span class="when-on">Na minha lista</span>
+  </button>
+</form>
+{% else %}
+<a class="btn btn-secondary" href="{{ url_for('auth.login', next=request.full_path) }}">{{ icon("plus") }} Minha lista</a>
+{% endif %}
+{%- endmacro %}
+
+{% macro pagination(page) -%}
+{% if page.pages > 1 %}
+<nav class="pagination" aria-label="Paginação">
+  {% if page.has_prev %}<a class="page-link" href="{{ url_with(page=page.prev_num) }}" rel="prev">{{ icon("left") }}<span class="sr-only">Anterior</span></a>{% endif %}
+  {% for number in page.iter_pages(left_edge=1, left_current=1, right_current=2, right_edge=1) %}
+    {% if number is none %}<span class="page-gap">…</span>
+    {% elif number == page.page %}<span class="page-link is-current" aria-current="page">{{ number }}</span>
+    {% else %}<a class="page-link" href="{{ url_with(page=number) }}">{{ number }}</a>{% endif %}
+  {% endfor %}
+  {% if page.has_next %}<a class="page-link" href="{{ url_with(page=page.next_num) }}" rel="next">{{ icon("right") }}<span class="sr-only">Próxima</span></a>{% endif %}
+</nav>
+{% endif %}
+{%- endmacro %}
+
+{% macro field(f, cls="") -%}
+{% if f.type == "BooleanField" %}
+<div class="field field-check {{ cls }}">
+  <label>{{ f() }} <span>{{ f.label.text }}</span></label>
+  {% for error in f.errors %}<p class="field-error">{{ error }}</p>{% endfor %}
+</div>
+{% elif f.type == "MultiCheckboxField" %}
+<fieldset class="field {{ cls }}">
+  <legend>{{ f.label.text }}</legend>
+  {% if f.choices %}{{ f(class="check-list") }}{% else %}<p class="muted small">Nenhum gênero cadastrado ainda.</p>{% endif %}
+  {% for error in f.errors %}<p class="field-error">{{ error }}</p>{% endfor %}
+</fieldset>
+{% else %}
+<div class="field {{ cls }}{% if f.errors %} has-error{% endif %}">
+  {{ f.label() }}
+  {{ f(class="input", **({"aria-invalid": "true"} if f.errors else {})) }}
+  {% if f.description %}<p class="field-hint">{{ f.description }}</p>{% endif %}
+  {% for error in f.errors %}<p class="field-error">{{ error }}</p>{% endfor %}
+</div>
+{% endif %}
+{%- endmacro %}
+
+{% macro delete_form(action, message, label="Excluir") -%}
+<form method="post" action="{{ action }}" class="inline-form" data-confirm="{{ message }}">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <button type="submit" class="btn btn-sm btn-danger-ghost">{{ icon("trash") }}<span>{{ label }}</span></button>
+</form>
+{%- endmacro %}
+
+{% macro empty_state(title, text, action_url=None, action_label=None, icon_name="film") -%}
+<div class="empty-state">
+  {{ icon(icon_name, "icon empty-icon") }}
+  <h2>{{ title }}</h2>
+  <p>{{ text }}</p>
+  {% if action_url %}<a class="btn btn-primary" href="{{ action_url }}">{{ action_label }}</a>{% endif %}
+</div>
+{%- endmacro %}

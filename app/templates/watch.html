@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block body_class %}watch-page{% endblock %}
+{% block extra_head %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/player.css') }}">
+  <script src="{{ url_for('static', filename='js/player.js') }}" defer></script>
+{% endblock %}
+{% block content %}
+<section class="watch-shell" data-player data-source="{{ media.video_url }}" data-type="{{ media.video_type }}"
+         {% if media.uses_hls %}data-hls-library="{{ url_for('static', filename='vendor/hls.min.js') }}"{% endif %}
+         data-progress-key="fs:{{ current_user.id if current_user.is_authenticated else 'guest' }}:{{ kind }}:{{ media.id }}"
+         aria-label="Reprodutor de {{ media.title }}">
+  <header class="watch-header">
+    <a class="btn btn-ghost" href="{{ parent.url }}" data-back>← Voltar</a>
+    <div class="watch-heading">
+      <p class="eyebrow">{% if kind == 'episode' %}{{ parent.title }} · T{{ media.season.season_number }} · E{{ media.episode_number }}{% else %}SESSÃO CINEMA{% endif %}</p>
+      <h1>{{ media.title }}</h1>
+    </div>
+    <button class="btn btn-ghost" type="button" aria-pressed="false" data-tv hidden>Modo TV</button>
+  </header>
+  <div class="player-screen" data-screen>
+    <video class="player-video" data-video controls playsinline preload="metadata" crossorigin="anonymous"
+           src="{{ media.video_url }}" {% if parent.backdrop_url %}poster="{{ parent.backdrop('w1280') }}"{% endif %}
+           tabindex="0" aria-label="Vídeo de {{ media.title }}">
+      {% if media.subtitle_url %}<track kind="subtitles" src="{{ media.subtitle_url }}" srclang="pt-BR" label="Português" default>{% endif %}
+      Seu navegador não oferece reprodução de vídeo HTML5.
+    </video>
+    <div class="player-status" role="status" aria-live="polite" data-status>Pressione Reproduzir para começar.</div>
+    <div class="player-resume" data-resume hidden>
+      <p data-resume-text></p>
+      <button class="btn btn-primary" type="button" data-continue>Continuar</button>
+      <button class="btn btn-ghost" type="button" data-restart>Do início</button>
+    </div>
+    <div class="player-controls" data-controls hidden>
+      <div class="player-timeline">
+        <span data-current>00:00</span>
+        <input type="range" min="0" max="100" value="0" step="1" aria-label="Posição do vídeo" aria-valuetext="00:00" data-seek disabled>
+        <span data-duration>--:--</span>
+      </div>
+      <div class="player-buttons">
+        <button type="button" data-play aria-label="Reproduzir">▶ Reproduzir</button>
+        <button type="button" data-rewind aria-label="Voltar 10 segundos">↶ 10s</button>
+        <button type="button" data-forward aria-label="Avançar 10 segundos">10s ↷</button>
+        <button type="button" data-mute aria-label="Silenciar" aria-pressed="false">Som ligado</button>
+        <button type="button" data-fullscreen>Tela cheia</button>
+        <button type="button" data-options-toggle aria-expanded="false" aria-controls="player-options">Opções</button>
+        <button type="button" data-retry hidden>Tentar novamente</button>
+      </div>
+      <div class="player-buttons player-options" id="player-options" data-options hidden>
+        <label class="player-volume">Volume <input type="range" min="0" max="1" step="0.05" value="1" aria-label="Volume" data-volume></label>
+        <label>Velocidade <select aria-label="Velocidade de reprodução" data-speed><option value="0.75">0,75×</option><option value="1" selected>Normal</option><option value="1.25">1,25×</option><option value="1.5">1,5×</option><option value="2">2×</option></select></label>
+        <label data-quality-label hidden>Qualidade <select data-quality aria-label="Qualidade do vídeo"><option value="-1">Automática</option></select></label>
+        <button type="button" data-captions aria-pressed="true" hidden>Legendas</button>
+        <button type="button" data-pip hidden>Miniplayer</button>
+      <button class="btn btn-ghost" type="button" data-native hidden>Usar controles do aparelho</button>
+      </div>
+    </div>
+  </div>
+  <div class="watch-bottom">
+    <p class="muted small">Controle remoto: setas para navegar · OK para selecionar · Voltar para sair da tela cheia. No vídeo: ← → pulam 10s · OK pausa.</p>
+    <div class="actions">
+      {% if next_episode %}<a class="btn btn-primary" href="{{ url_for('main.watch', kind='episode', item_id=next_episode.id) }}" data-next>Próximo episódio →</a>{% endif %}
+    </div>
+  </div>
+  <noscript><p>Use os controles do aparelho. HLS sem suporte nativo precisa de JavaScript.</p></noscript>
+</section>
+{% endblock %}

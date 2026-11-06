@@ -1,0 +1,38 @@
+{% extends "admin/layout.html" %}
+{% import "components/ui.html" as ui with context %}
+
+{% block admin_content %}
+<header class="page-head">
+  <div>
+    <h1>Usuários</h1>
+    <p class="muted">{{ page.total }} conta{{ "s" if page.total != 1 }}</p>
+  </div>
+</header>
+
+<div class="table-wrap">
+  <table class="table">
+    <thead><tr><th scope="col">Usuário</th><th scope="col">E-mail</th><th scope="col">Favoritos</th><th scope="col">Desde</th><th scope="col"><span class="sr-only">Ações</span></th></tr></thead>
+    <tbody>
+      {% for user in page.items %}
+      <tr>
+        <td>
+          <strong>{{ user.username }}</strong>
+          {% if user.is_admin %}<span class="badge badge-accent">Admin</span>{% endif %}
+          {% if user == current_user %}<span class="badge badge-muted">Você</span>{% endif %}
+        </td>
+        <td>{{ user.email }}</td>
+        <td>{{ user.favorites_count }}</td>
+        <td>{{ user.created_at|date_br }}</td>
+        <td class="row-actions">
+          <a class="btn btn-sm btn-ghost" href="{{ url_for('admin.edit_user', user_id=user.id) }}">{{ ui.icon("edit") }}<span>Editar</span></a>
+          {% if user != current_user %}
+            {{ ui.delete_form(url_for('admin.delete_user', user_id=user.id), "Excluir a conta de " ~ user.username ~ "?") }}
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{{ ui.pagination(page) }}
+{% endblock %}

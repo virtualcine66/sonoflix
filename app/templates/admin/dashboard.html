@@ -1,0 +1,55 @@
+{% extends "admin/layout.html" %}
+{% import "components/ui.html" as ui with context %}
+
+{% block admin_content %}
+<header class="page-head">
+  <div>
+    <h1>Visão geral</h1>
+    <p class="muted">Olá, {{ current_user.username }}. Aqui está o resumo do catálogo.</p>
+  </div>
+  <a class="btn btn-primary" href="{{ url_for('admin.import_search') }}">{{ ui.icon("download") }} Importar do TMDb</a>
+</header>
+
+{% if not tmdb_configured %}
+<div class="notice">
+  {{ ui.icon("info") }}
+  <p><strong>TMDb não configurado.</strong> Defina <code>TMDB_API_TOKEN</code> no <code>.env</code> para importar títulos com pôster, elenco, trailer e episódios.</p>
+</div>
+{% endif %}
+
+<div class="stats">
+  {% for label, value in stats.items() %}
+    <div class="stat"><span class="stat-value">{{ value }}</span><span class="stat-label">{{ label }}</span></div>
+  {% endfor %}
+</div>
+
+<div class="admin-columns">
+  <section class="panel">
+    <h2>Adicionados recentemente</h2>
+    {% if recent %}
+    <ul class="mini-list">
+      {% for item in recent %}
+        <li>
+          <a href="{{ url_for('admin.edit_item', kind=item.kind, item_id=item.id) }}">{{ item.title }}</a>
+          <span class="muted small">{{ item.kind_label }} · {{ item.created_at|date_br }}</span>
+        </li>
+      {% endfor %}
+    </ul>
+    {% else %}<p class="muted">Nenhum título ainda.</p>{% endif %}
+  </section>
+
+  <section class="panel">
+    <h2>Mais favoritados</h2>
+    {% if most_favorited %}
+    <ol class="mini-list">
+      {% for row in most_favorited %}
+        <li>
+          <a href="{{ row[0].url }}">{{ row[0].title }}</a>
+          <span class="muted small">{{ row.total }} favorito{{ "s" if row.total != 1 }}</span>
+        </li>
+      {% endfor %}
+    </ol>
+    {% else %}<p class="muted">Ninguém favoritou nada ainda.</p>{% endif %}
+  </section>
+</div>
+{% endblock %}

@@ -1,0 +1,42 @@
+{% extends "admin/layout.html" %}
+{% import "components/ui.html" as ui with context %}
+
+{% block admin_content %}
+<header class="page-head">
+  <div>
+    <h1>Gêneros</h1>
+    <p class="muted">{{ genres|length }} gênero{{ "s" if genres|length != 1 }}. Os importados do TMDb são criados automaticamente.</p>
+  </div>
+</header>
+
+<div class="admin-columns admin-columns-wide">
+  <div class="table-wrap">
+    <table class="table">
+      <thead><tr><th scope="col">Nome</th><th scope="col">Filmes</th><th scope="col">Séries</th><th scope="col"><span class="sr-only">Ações</span></th></tr></thead>
+      <tbody>
+        {% for g in genres %}
+        <tr>
+          <td><a href="{{ url_for('main.movies', genre=g.slug) }}">{{ g.name }}</a></td>
+          <td>{{ g.movies.count() }}</td>
+          <td>{{ g.series.count() }}</td>
+          <td class="row-actions">
+            <a class="btn btn-sm btn-ghost" href="{{ url_for('admin.edit_genre', genre_id=g.id) }}">{{ ui.icon("edit") }}<span>Editar</span></a>
+            {{ ui.delete_form(url_for('admin.delete_genre', genre_id=g.id), "Excluir o gênero “" ~ g.name ~ "”? Os títulos continuam no catálogo.") }}
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="4" class="muted">Nenhum gênero cadastrado.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <form method="post" class="panel" novalidate>
+    <h2>Novo gênero</h2>
+    {{ form.hidden_tag() }}
+    {{ ui.field(form.name) }}
+    {{ ui.field(form.description) }}
+    <button class="btn btn-primary btn-block" type="submit">{{ ui.icon("plus") }} Adicionar</button>
+  </form>
+</div>
+{% endblock %}

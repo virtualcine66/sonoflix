@@ -1,0 +1,77 @@
+{% extends "admin/layout.html" %}
+{% import "components/ui.html" as ui with context %}
+
+{% block admin_content %}
+<header class="page-head">
+  <div>
+    <h1>{{ meta.plural }}</h1>
+    <p class="muted">{{ page.total }} cadastrado{{ "s" if page.total != 1 }}</p>
+  </div>
+  <div class="actions">
+    <a class="btn btn-secondary" href="{{ url_for('admin.add_item', kind=kind) }}">{{ ui.icon("plus") }} Cadastrar à mão</a>
+    <a class="btn btn-primary" href="{{ url_for('admin.import_search', kind=kind) }}">{{ ui.icon("download") }} Importar do TMDb</a>
+  </div>
+</header>
+
+<form class="toolbar" method="get" role="search">
+  <input class="input" type="search" name="q" value="{{ query }}" placeholder="Filtrar por título" aria-label="Filtrar por título">
+  <button class="btn btn-secondary" type="submit">Filtrar</button>
+</form>
+
+{% if page.items %}
+<div class="table-wrap">
+  <table class="table">
+    <thead>
+      <tr>
+        <th scope="col">Título</th>
+        <th scope="col">Ano</th>
+        <th scope="col">Nota</th>
+        <th scope="col">Origem</th>
+        <th scope="col"><span class="sr-only">Ações</span></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in page.items %}
+      <tr>
+        <td>
+          <div class="table-title">
+            <div class="thumb">{{ ui.poster(item, "w92") }}</div>
+            <div>
+              <a href="{{ item.url }}">{{ item.title }}</a>
+              {% if item.featured %}<span class="badge badge-accent">Destaque</span>{% endif %}
+              <div class="muted small">{{ item.genres|map(attribute="name")|join(", ") or "Sem gênero" }}</div>
+            </div>
+          </div>
+        </td>
+        <td>{{ item.year or "—" }}</td>
+        <td>{{ item.rating|score }}</td>
+        <td>{% if item.tmdb_id %}<span class="badge">TMDb</span>{% else %}<span class="badge badge-muted">Manual</span>{% endif %}</td>
+        <td class="row-actions">
+          {% if kind == "series" %}
+            <a class="btn btn-sm btn-ghost" href="{{ url_for('admin.list_seasons', series_id=item.id) }}">{{ ui.icon("layers") }}<span>Temporadas</span></a>
+          {% endif %}
+          <a class="btn btn-sm btn-ghost" href="{{ url_for('admin.edit_item', kind=kind, item_id=item.id) }}">{{ ui.icon("edit") }}<span>Editar</span></a>
+          <form method="post" action="{{ url_for('admin.toggle_featured', kind=kind, item_id=item.id) }}" class="inline-form">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="hidden" name="next" value="{{ request.full_path }}">
+            <button class="btn btn-sm btn-ghost" type="submit" aria-pressed="{{ 'true' if item.featured else 'false' }}">{{ ui.icon("pin") }}<span>{{ "Tirar destaque" if item.featured else "Destacar" }}</span></button>
+          </form>
+          {% if item.tmdb_id %}
+          <form method="post" action="{{ url_for('admin.refresh_item', kind=kind, item_id=item.id) }}" class="inline-form">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="hidden" name="next" value="{{ request.full_path }}">
+            <button class="btn btn-sm btn-ghost" type="submit" title="Atualizar com os dados do TMDb">{{ ui.icon("refresh") }}<span>Atualizar</span></button>
+          </form>
+          {% endif %}
+          {{ ui.delete_form(url_for('admin.delete_item', kind=kind, item_id=item.id), "Excluir “" ~ item.title ~ "”? Essa ação não pode ser desfeita.") }}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{{ ui.pagination(page) }}
+{% else %}
+  {{ ui.empty_state("Nenhum título encontrado", "Importe do TMDb ou cadastre manualmente.", url_for('admin.import_search', kind=kind), "Importar do TMDb", "download") }}
+{% endif %}
+{% endblock %}

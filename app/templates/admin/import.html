@@ -1,0 +1,62 @@
+{% extends "admin/layout.html" %}
+{% import "components/ui.html" as ui with context %}
+
+{% block admin_content %}
+<header class="page-head">
+  <div>
+    <h1>Importar do TMDb</h1>
+    <p class="muted">Busque um título e importe pôster, sinopse, elenco, gêneros, trailer e episódios de uma vez.</p>
+  </div>
+</header>
+
+{% if not tmdb_configured %}
+<div class="notice">
+  {{ ui.icon("info") }}
+  <p><strong>TMDb não configurado.</strong> Crie uma chave gratuita em themoviedb.org (Configurações → API) e coloque o token em <code>TMDB_API_TOKEN</code> no arquivo <code>.env</code>.</p>
+</div>
+{% endif %}
+
+<form class="toolbar" method="get" role="search">
+  <div class="segmented" role="radiogroup" aria-label="Tipo">
+    <label><input type="radio" name="kind" value="movie" {% if kind == 'movie' %}checked{% endif %}><span>Filmes</span></label>
+    <label><input type="radio" name="kind" value="series" {% if kind == 'series' %}checked{% endif %}><span>Séries</span></label>
+  </div>
+  <input class="input" type="search" name="q" value="{{ query }}" placeholder="Ex.: Ainda Estou Aqui" aria-label="Título" required>
+  <button class="btn btn-primary" type="submit">{{ ui.icon("search") }} Buscar no TMDb</button>
+</form>
+
+{% if error %}<div class="flash flash-danger">{{ error }}</div>{% endif %}
+
+{% if results %}
+<ul class="import-list">
+  {% for r in results %}
+  <li class="import-item">
+    <div class="thumb thumb-lg">
+      {% if r.poster_path %}<img src="{{ image_base }}/w154{{ r.poster_path }}" alt="" loading="lazy">{% else %}<div class="poster-placeholder hue-{{ loop.index % 8 }}">{{ ui.icon("film" if kind == 'movie' else "tv", "icon placeholder-icon") }}</div>{% endif %}
+    </div>
+    <div class="import-info">
+      <h2>{{ r.title }} {% if r.year %}<span class="muted">({{ r.year }})</span>{% endif %}</h2>
+      {% if r.original_title and r.original_title != r.title %}<p class="muted small">{{ r.original_title }}</p>{% endif %}
+      <p class="small clamp-3">{{ r.overview or "Sem sinopse em português." }}</p>
+    </div>
+    <div class="import-action">
+      {% if r.tmdb_id in imported %}
+        <span class="badge badge-success">{{ ui.icon("check") }} Já no catálogo</span>
+        <a class="btn btn-sm btn-ghost" href="{{ url_for('admin.edit_item', kind=kind, item_id=imported[r.tmdb_id]) }}">Editar</a>
+      {% else %}
+        <form method="post" action="{{ url_for('admin.import_item') }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <input type="hidden" name="kind" value="{{ kind }}">
+          <input type="hidden" name="tmdb_id" value="{{ r.tmdb_id }}">
+          <input type="hidden" name="next" value="{{ request.full_path }}">
+          <button class="btn btn-primary btn-sm" type="submit" data-loading-text="Importando…">{{ ui.icon("download") }} Importar</button>
+        </form>
+      {% endif %}
+    </div>
+  </li>
+  {% endfor %}
+</ul>
+{% elif query and not error %}
+  {{ ui.empty_state("Nada encontrado no TMDb", "Tente o título original ou outra grafia.", None, None, "search") }}
+{% endif %}
+{% endblock %}

@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% import "components/ui.html" as ui with context %}
+
+{% block content %}
+<div class="container">
+  <header class="page-head">
+    <div>
+      <h1>{{ heading }}{% if genre %} <span class="muted">· {{ genre.name }}</span>{% endif %}</h1>
+      <p class="muted">{{ page.total }} título{{ "s" if page.total != 1 }}</p>
+    </div>
+    <form class="filters" method="get" data-autosubmit>
+      <label class="select-wrap">
+        <span class="sr-only">Gênero</span>
+        <select name="genre" class="input input-sm">
+          <option value="">Todos os gêneros</option>
+          {% for g in genres %}
+            <option value="{{ g.slug }}" {% if genre and genre.id == g.id %}selected{% endif %}>{{ g.name }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <label class="select-wrap">
+        <span class="sr-only">Ordenar por</span>
+        <select name="sort" class="input input-sm">
+          {% for value, label in sort_options.items() %}
+            <option value="{{ value }}" {% if value == sort %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <button class="btn btn-secondary btn-sm" type="submit" data-autosubmit-button>Filtrar</button>
+    </form>
+  </header>
+
+  {% if genres %}
+  <nav class="chips" aria-label="Gêneros">
+    <a class="chip" href="{{ url_with(genre=None, page=None) }}" {% if not genre %}aria-current="true"{% endif %}>Todos</a>
+    {% for g in genres %}
+      <a class="chip" href="{{ url_with(genre=g.slug, page=None) }}" {% if genre and genre.id == g.id %}aria-current="true"{% endif %}>{{ g.name }}</a>
+    {% endfor %}
+  </nav>
+  {% endif %}
+
+  {% if page.items %}
+    {{ ui.grid(page.items) }}
+    {{ ui.pagination(page) }}
+  {% else %}
+    {{ ui.empty_state("Nada por aqui", "Nenhum título encontrado com esses filtros.", url_with(genre=None, page=None), "Limpar filtros") }}
+  {% endif %}
+</div>
+{% endblock %}

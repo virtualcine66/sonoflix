@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% import "components/ui.html" as ui with context %}
+
+{% block body_class %}is-admin{% endblock %}
+{% block main_class %}page page-admin{% endblock %}
+
+{% block content %}
+{% set endpoint = request.endpoint or "" %}
+{% set kind_arg = (request.view_args or {}).get("kind") %}
+<div class="container admin">
+  <aside class="admin-nav" aria-label="Painel">
+    <p class="admin-nav-title">Painel admin</p>
+    <nav>
+      <a href="{{ url_for('admin.dashboard') }}" {% if endpoint == 'admin.dashboard' %}aria-current="page"{% endif %}>{{ ui.icon("grid") }}Visão geral</a>
+      <a href="{{ url_for('admin.list_movies') }}" {% if endpoint == 'admin.list_movies' or kind_arg == 'movie' %}aria-current="page"{% endif %}>{{ ui.icon("film") }}Filmes</a>
+      <a href="{{ url_for('admin.list_series') }}" {% if endpoint in ('admin.list_series', 'admin.list_seasons', 'admin.add_season', 'admin.edit_season', 'admin.list_episodes', 'admin.add_episode', 'admin.edit_episode') or kind_arg == 'series' %}aria-current="page"{% endif %}>{{ ui.icon("tv") }}Séries</a>
+      <a href="{{ url_for('admin.import_search') }}" {% if endpoint == 'admin.import_search' %}aria-current="page"{% endif %}>{{ ui.icon("download") }}Importar do TMDb</a>
+      <a href="{{ url_for('admin.list_genres') }}" {% if endpoint in ('admin.list_genres', 'admin.edit_genre') %}aria-current="page"{% endif %}>{{ ui.icon("tag") }}Gêneros</a>
+      <a href="{{ url_for('admin.list_users') }}" {% if endpoint in ('admin.list_users', 'admin.edit_user') %}aria-current="page"{% endif %}>{{ ui.icon("users") }}Usuários</a>
+    </nav>
+  </aside>
+  <section class="admin-main">
+    {% block admin_content %}{% endblock %}
+  </section>
+</div>
+{% endblock %}

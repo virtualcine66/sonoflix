@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% import "components/ui.html" as ui with context %}
+
+{% block content %}
+<div class="container auth">
+  <div class="auth-card">
+    <h1>Entrar</h1>
+    <p class="muted">Acesse a sua lista de filmes e séries.</p>
+    <form method="post" novalidate>
+      {{ form.hidden_tag() }}
+      {{ ui.field(form.identifier) }}
+      {{ ui.field(form.password) }}
+      {{ ui.field(form.remember_me) }}
+      <button class="btn btn-primary btn-block" type="submit">Entrar</button>
+    </form>
+    <p class="auth-switch muted">
+      Ainda não tem conta?
+      <a href="{{ url_for('auth.register', next=request.args.get('next')) }}">Crie uma agora</a>
+    </p>
+  </div>
+</div>
+{% endblock %}

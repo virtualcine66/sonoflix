@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+{% import "components/ui.html" as ui with context %}
+
+{% block description %}{{ (item.description or item.title)|truncate(155) }}{% endblock %}
+{% block meta %}
+  {% if item.poster_url %}<meta property="og:image" content="{{ item.poster('w500') }}">{% endif %}
+  <meta property="og:type" content="{{ 'video.movie' if item.kind == 'movie' else 'video.tv_show' }}">
+{% endblock %}
+{% block main_class %}page page-detail{% endblock %}
+
+{% block content %}
+<section class="detail-hero{% if not item.backdrop_url %} hero-no-image hue-{{ item.placeholder_hue }}{% endif %}">
+  {% if item.backdrop_url %}<img class="hero-backdrop" src="{{ item.backdrop('w1280') }}" alt="">{% endif %}
+  <div class="container detail-grid">
+    <div class="detail-poster">{{ ui.poster(item, "w500", eager=True) }}</div>
+
+    <div class="detail-info">
+      <p class="eyebrow">
+        <a href="{{ url_for('main.movies' if item.kind == 'movie' else 'main.series') }}">{{ item.kind_label }}</a>
+      </p>
+      <h1 class="detail-title">{{ item.title }}</h1>
+      {% if item.original_title and item.original_title != item.title %}
+        <p class="muted original-title">{{ item.original_title }}</p>
+      {% endif %}
+      {% if item.tagline %}<p class="tagline">“{{ item.tagline }}”</p>{% endif %}
+
+      <p class="meta-line">
+        {{ ui.rating(item.rating) }}
+        {% if item.kind == "movie" %}
+          {% if item.release_date %}<span>{{ item.release_date|date_br }}</span>{% endif %}
+          {% if item.runtime %}<span>{{ item.runtime|duration }}</span>{% endif %}
+        {% else %}
+          {% if item.years_label %}<span>{{ item.years_label }}</span>{% endif %}
+          {% set season_total = item.seasons.count() %}
+          {% if season_total %}<span>{{ season_total }} temporada{{ "s" if season_total > 1 }}</span>{% endif %}
+          {% if item.episode_runtime %}<span>~{{ item.episode_runtime|duration }} por episódio</span>{% endif %}
+        {% endif %}
+      </p>
+
+      {% if item.genres %}
+      <ul class="chips" aria-label="Gêneros">
+        {% for g in item.genres %}
+          <li><a class="chip" href="{{ url_for('main.movies' if item.kind == 'movie' else 'main.series', genre=g.slug) }}">{{ g.name }}</a></li>
+        {% endfor %}
+      </ul>
+      {% endif %}
+
+      <div class="actions">
+        {% if item.kind == "movie" and item.video_url %}
+          <a class="btn btn-primary" href="{{ url_for('main.watch', kind='movie', item_id=item.id) }}">{{ ui.icon("play") }} Assistir</a>
+        {% elif item.kind == "series" %}
+          <a class="btn btn-primary" href="#temporadas">{{ ui.icon("play") }} Ver episódios</a>
+        {% endif %}
+        {% if item.trailer_key %}
+          <a class="btn btn-primary" href="#trailer">{{ ui.icon("play") }} Ver trailer</a>
+        {% endif %}
+        {{ ui.favorite_button(item, is_favorite) }}
+      </div>
+
+      {% if item.description %}
+        <h2 class="sr-only">Sinopse</h2>
+        <p class="overview">{{ item.description }}</p>
+      {% endif %}
+
+      <dl class="credits">
+        {% if item.kind == "movie" and item.director %}
+          <div><dt>Direção</dt><dd>{{ item.director }}</dd></div>
+        {% elif item.kind == "series" and item.creator %}
+          <div><dt>Criação</dt><dd>{{ item.creator }}</dd></div>
+        {% endif %}
+        {% if item.cast_list %}
+          <div><dt>Elenco</dt><dd>{{ item.cast_list|join(", ") }}</dd></div>
+        {% endif %}
+      </dl>
+    </div>
+  </div>
+</section>
+
+<div class="container detail-body">
+  {% if item.trailer_key %}
+  <section class="section" id="trailer" aria-labelledby="trailer-title">
+    <h2 id="trailer-title">Trailer</h2>
+    <a class="trailer" href="https://www.youtube.com/watch?v={{ item.trailer_key }}" target="_blank" rel="noopener"
+       data-trailer data-src="{{ item.trailer_embed_url }}" data-title="Trailer de {{ item.title }}">
+      <img src="{{ item.trailer_thumb_url }}" alt="" loading="lazy">
+      <span class="trailer-play">{{ ui.icon("play") }}<span class="sr-only">Assistir ao trailer de {{ item.title }}</span></span>
+    </a>
+    <p class="muted small">Trailer oficial, reproduzido pelo YouTube.</p>
+  </section>
+  {% endif %}
+
+  {% if item.kind == "series" %}
+  <section class="section" id="temporadas" aria-labelledby="seasons-title">
+    <h2 id="seasons-title">Temporadas e episódios</h2>
+    {% for season in item.seasons %}
+      {% set episodes = season.episodes.all() %}
+      <details class="season" {% if loop.first %}open{% endif %}>
+        <summary>
+          <span class="season-name">{{ season.display_title }}</span>
+          <span class="muted small">
+            {% if season.release_date %}{{ season.release_date.year }}{% endif %}
+            {% if season.release_date and episodes %} · {% endif %}
+            {% if episodes %}{{ episodes|length }} episódio{{ "s" if episodes|length != 1 }}{% endif %}
+          </span>
+          {{ ui.icon("down", "icon season-chevron") }}
+        </summary>
+        {% if season.description %}<p class="season-overview">{{ season.description }}</p>{% endif %}
+        {% if episodes %}
+          <ol class="episodes">
+            {% for ep in episodes %}
+              <li class="episode">
+                {% if ep.still_url %}
+                  <img class="episode-still" src="{{ ep.still() }}" alt="" loading="lazy" width="300" height="169">
+                {% else %}
+                  <div class="episode-still episode-still-empty" aria-hidden="true">{{ ep.episode_number }}</div>
+                {% endif %}
+                <div class="episode-info">
+                  <h3><span class="muted">{{ ep.episode_number }}.</span> {{ ep.title }}</h3>
+                  <p class="muted small">
+                    {% if ep.release_date %}{{ ep.release_date|date_br }}{% endif %}
+                    {% if ep.release_date and ep.duration_minutes %} · {% endif %}
+                    {% if ep.duration_minutes %}{{ ep.duration_minutes|duration }}{% endif %}
+                  </p>
+                  {% if ep.description %}<p class="episode-overview">{{ ep.description }}</p>{% endif %}
+                  {% if ep.video_url %}
+                    <a class="btn btn-primary btn-sm" href="{{ url_for('main.watch', kind='episode', item_id=ep.id) }}">{{ ui.icon("play") }} Assistir episódio</a>
+                  {% endif %}
+                </div>
+              </li>
+            {% endfor %}
+          </ol>
+        {% else %}
+          <p class="muted small">A lista de episódios desta temporada ainda não foi cadastrada.</p>
+        {% endif %}
+      </details>
+    {% else %}
+      <p class="muted">Nenhuma temporada cadastrada.</p>
+    {% endfor %}
+  </section>
+  {% endif %}
+
+  {% if related.items %}{{ ui.rail(related, "related") }}{% endif %}
+</div>
+{% endblock %}

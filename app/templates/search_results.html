@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% import "components/ui.html" as ui with context %}
+
+{% block content %}
+<div class="container">
+  <header class="page-head">
+    <div>
+      {% if query %}
+        <h1>Resultados para “{{ query }}”</h1>
+        <p class="muted">{{ results|length }} título{{ "s" if results|length != 1 }} encontrado{{ "s" if results|length != 1 }}</p>
+      {% else %}
+        <h1>Buscar</h1>
+        <p class="muted">Procure por título, ator, diretor ou criador.</p>
+      {% endif %}
+    </div>
+  </header>
+
+  <form class="search-page" action="{{ url_for('main.search') }}" method="get" role="search">
+    <input class="input" type="search" name="query" value="{{ query }}" placeholder="Ex.: Nolan, Breaking Bad, Zendaya" aria-label="Buscar" maxlength="100">
+    <button class="btn btn-primary" type="submit">{{ ui.icon("search") }} Buscar</button>
+  </form>
+
+  {% if results %}
+    {{ ui.grid(results) }}
+  {% elif query %}
+    {{ ui.empty_state("Nada encontrado", "Confira a grafia ou tente buscar pelo nome de alguém do elenco.", url_for('main.movies'), "Ver todos os filmes", "search") }}
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,36 @@
+{% extends "admin/layout.html" %}
+{% import "components/ui.html" as ui with context %}
+
+{% block admin_content %}
+<header class="page-head">
+  <div>
+    <a class="back-link" href="{{ url_for('admin.list_seasons', series_id=season.series_id) }}">{{ ui.icon("left") }} {{ season.series.title }}</a>
+    <h1>{{ season.display_title }}</h1>
+  </div>
+  <a class="btn btn-primary" href="{{ url_for('admin.add_episode', season_id=season.id) }}">{{ ui.icon("plus") }} Novo episódio</a>
+</header>
+
+{% if episodes %}
+<div class="table-wrap">
+  <table class="table">
+    <thead><tr><th scope="col">Nº</th><th scope="col">Título</th><th scope="col">Exibição</th><th scope="col">Duração</th><th scope="col"><span class="sr-only">Ações</span></th></tr></thead>
+    <tbody>
+      {% for ep in episodes %}
+      <tr>
+        <td>{{ ep.episode_number }}</td>
+        <td>{{ ep.title }}</td>
+        <td>{{ ep.release_date|date_br or "—" }}</td>
+        <td>{{ ep.duration_minutes|duration or "—" }}</td>
+        <td class="row-actions">
+          <a class="btn btn-sm btn-ghost" href="{{ url_for('admin.edit_episode', episode_id=ep.id) }}">{{ ui.icon("edit") }}<span>Editar</span></a>
+          {{ ui.delete_form(url_for('admin.delete_episode', episode_id=ep.id), "Excluir o episódio “" ~ ep.title ~ "”?") }}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+  {{ ui.empty_state("Nenhum episódio", "Adicione os episódios desta temporada.", url_for('admin.add_episode', season_id=season.id), "Novo episódio", "layers") }}
+{% endif %}
+{% endblock %}

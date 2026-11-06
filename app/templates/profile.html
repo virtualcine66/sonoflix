@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% import "components/ui.html" as ui with context %}
+
+{% block content %}
+<div class="container">
+  <header class="page-head">
+    <div class="profile-head">
+      <span class="avatar avatar-lg" aria-hidden="true">{{ current_user.username[:1]|upper }}</span>
+      <div>
+        <h1>Minha lista</h1>
+        <p class="muted">{{ current_user.username }} · membro desde {{ current_user.created_at|date_br }}</p>
+      </div>
+    </div>
+  </header>
+
+  {% if favorites %}
+    {{ ui.grid(favorites) }}
+  {% else %}
+    {{ ui.empty_state("Sua lista está vazia",
+                      "Abra um filme ou série e toque em “Minha lista” para guardar aqui o que você quer ver.",
+                      url_for('main.index'), "Explorar o catálogo", "plus") }}
+  {% endif %}
+</div>
+{% endblock %}
