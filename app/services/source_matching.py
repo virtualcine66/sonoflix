@@ -70,13 +70,20 @@ def match(source, client, allow_unique_title=False):
         return
     results = client.search(source.search_title, source.kind)
     source.candidates = results[:10]
-    exact = [r for r in results if slugify(source.search_title) in
-             (slugify(r["title"]), slugify(r.get("original_title") or ""))
-             and (source.year is None or str(source.year) == str(r.get("year")))]
-    # Sem ano, filmes homônimos não são associados automaticamente.
-    if len(exact) == 1 and (source.kind == "series" or source.year is not None
-                            or (allow_unique_title and len(results) == 1)):
-        attach(source, exact[0]["tmdb_id"], client)
+    selected = choose_candidate(source.search_title, source.kind, source.year, results, allow_unique_title)
+    if selected is not None:
+        attach(source, selected, client)
     else:
         source.match_status = "review"
         db.session.commit()
+
+
+def choose_candidate(title, kind, year, results, allow_unique_title=False):
+    exact = [r for r in results if slugify(title) in
+             (slugify(r["title"]), slugify(r.get("original_title") or ""))
+             and (year is None or str(year) == str(r.get("year")))]
+    # Sem ano, filmes homônimos não são associados automaticamente.
+    if len(exact) == 1 and (kind == "series" or year is not None
+                            or (allow_unique_title and len(results) == 1)):
+        return exact[0]['tmdb_id']
+    return None

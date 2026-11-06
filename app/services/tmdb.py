@@ -18,10 +18,11 @@ VIDEO_LANGUAGES = "pt,en,null"
 class TMDbError(RuntimeError):
     """Erro de comunicação com o TMDb, com mensagem pronta para exibir ao usuário."""
 
-    def __init__(self, message, retryable=False, status_code=None):
+    def __init__(self, message, retryable=False, status_code=None, retry_after=None):
         super().__init__(message)
         self.retryable = retryable
         self.status_code = status_code
+        self.retry_after = retry_after
 
 
 class TMDbNotConfigured(TMDbError):
@@ -75,6 +76,8 @@ class TMDbClient:
         if delay > 0:
             time.sleep(delay)
         self._last_request = time.monotonic()
+        if getattr(self, 'before_request', None):
+            self.before_request()
         try:
             response = self.session.get(BASE_URL + path, params=params, headers=headers, timeout=self.timeout)
         except requests.RequestException as exc:
@@ -85,7 +88,13 @@ class TMDbClient:
         if response.status_code == 404:
             raise TMDbError("Título não encontrado no TMDb.", status_code=404)
         if response.status_code == 429:
-            raise TMDbError("O TMDb limitou as requisições. Tente de novo em alguns segundos.", retryable=True)
+            raw = getattr(response, 'headers', {}).get('Retry-After', '')
+            try:
+                delay = max(1, float(raw))
+            except (ValueError, TypeError):
+                delay = 5
+            raise TMDbError("O TMDb limitou as requisições. Tente de novo em alguns segundos.",
+                            retryable=True, status_code=429, retry_after=delay)
         if not response.ok:
             raise TMDbError(f"O TMDb respondeu com erro {response.status_code}.", retryable=response.status_code >= 500)
 

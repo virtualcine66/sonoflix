@@ -96,3 +96,13 @@ O script precisa do computador ligado, internet e autenticação Git já autoriz
 Estado: instance/catalog-job.json; log: instance/catalog-complete.log no clone de publicação.
 Falhas de rede têm novas tentativas; em falha persistente, o estado fica failed e a fila pode ser retomada.
 Correspondências ambíguas não recebem informações inventadas.
+
+ACELERAÇÃO DO PROCESSAMENTO
+A fila inteira é processada sem limite de quantidade de títulos/episódios.
+O padrão agora faz 8 consultas em paralelo, mantendo apenas um escritor no SQLite.
+Os trabalhadores têm conexões HTTP próprias e cache em disco/memória.
+Quando o TMDB responde 429, todos respeitam a pausa indicada pelo fornecedor.
+A opção --workers permite ajustar a concorrência; --limit só é usado para testes explícitos.
+O log mostra elapsed_seconds e items_per_minute em cada atualização.
+Teste local: 20 títulos em 25,41 segundos no fluxo serial;
+50 títulos em 9,02 segundos no paralelo. Amostras distintas; não é uma previsão de duração total.

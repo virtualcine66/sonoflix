@@ -64,7 +64,9 @@ def register_source_cli(app):
     @click.option("--limit", type=click.IntRange(1))
     @click.option("--kind", type=click.Choice(["movie", "series"]))
     @click.option("--series-titles-first", is_flag=True, help="Busca capas e sinopses de uma série por vez.")
-    def sync_all(status, limit, kind, series_titles_first):
+    @click.option("--workers", default=8, type=click.IntRange(1, 32),
+                  help="Consultas paralelas; gravação serial no SQLite.")
+    def sync_all(status, limit, kind, series_titles_first, workers):
         """Processa toda a fila automaticamente; repetir retoma os pendentes."""
         from app.services.bulk_catalog import BatchClient, process_queue, process_series_titles
 
@@ -75,13 +77,16 @@ def register_source_cli(app):
                              token=config["TMDB_API_TOKEN"], api_key=config["TMDB_API_KEY"],
                              language=config["TMDB_LANGUAGE"], region=config["TMDB_REGION"],
                              timeout=config["TMDB_TIMEOUT"])
+        started = time.monotonic()
         try:
             def progress(counts):
-                click.echo(json.dumps(counts))
+                elapsed = time.monotonic() - started
+                click.echo(json.dumps({**counts, 'elapsed_seconds': round(elapsed, 1),
+                                       'items_per_minute': round(counts['processed'] * 60 / max(elapsed, 0.01), 1)}))
             if series_titles_first:
-                process_series_titles(client, limit=limit, progress=progress)
+                process_series_titles(client, limit=limit, progress=progress, workers=workers)
             else:
-                process_queue(client, status=status, limit=limit, kind=kind, progress=progress)
+                process_queue(client, status=status, limit=limit, kind=kind, progress=progress, workers=workers)
         except TMDbError as exc:
             db.session.rollback()
             raise click.ClickException(f"{exc} Execute novamente para retomar os pendentes.") from exc
