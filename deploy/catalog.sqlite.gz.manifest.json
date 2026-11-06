@@ -1,0 +1,30 @@
+{
+  "version": 1,
+  "parts": [
+    {
+      "name": "catalog.sqlite.gz.part001",
+      "size": 20000000,
+      "sha256": "3b717aabf75ece43dcf56985e3bcde0719be448224b52e63b0e008db0580ac2d"
+    },
+    {
+      "name": "catalog.sqlite.gz.part002",
+      "size": 20000000,
+      "sha256": "27e63d33980a61dc2aa54549d6d29a4cfcb3e09991cdcdf2c9b32500fa5a9fdf"
+    },
+    {
+      "name": "catalog.sqlite.gz.part003",
+      "size": 20000000,
+      "sha256": "2c032076f1ae147b104189febce25f29aa99f0d7d664e9f7f917de90c23b1cb5"
+    },
+    {
+      "name": "catalog.sqlite.gz.part004",
+      "size": 20000000,
+      "sha256": "9488f6fe43af20d6d3b60021cfac1376246e3a2ec1e2cecbcbe3ea3cd0030808"
+    },
+    {
+      "name": "catalog.sqlite.gz.part005",
+      "size": 14465643,
+      "sha256": "31d847074234625aab9c7fc752c84924eb9e224bd6538a5ab9bc6691509a9ae7"
+    }
+  ]
+}

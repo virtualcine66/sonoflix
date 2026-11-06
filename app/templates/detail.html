@@ -23,6 +23,7 @@
         <p class="muted original-title">{{ item.original_title }}</p>
       {% endif %}
       {% if item.tagline %}<p class="tagline">“{{ item.tagline }}”</p>{% endif %}
+      {% if item.catalog_key and not item.tmdb_id %}<p class="muted small">Informações adicionais ainda não disponíveis.</p>{% endif %}
 
       <p class="meta-line">
         {{ ui.rating(item.rating) }}
@@ -46,7 +47,7 @@
       {% endif %}
 
       <div class="actions">
-        {% if item.kind == "movie" and item.video_url %}
+        {% if item.kind == "movie" and item.has_playback %}
           <a class="btn btn-primary" href="{{ url_for('main.watch', kind='movie', item_id=item.id) }}">{{ ui.icon("play") }} Assistir</a>
         {% elif item.kind == "series" %}
           <a class="btn btn-primary" href="#temporadas">{{ ui.icon("play") }} Ver episódios</a>
@@ -122,7 +123,7 @@
                     {% if ep.duration_minutes %}{{ ep.duration_minutes|duration }}{% endif %}
                   </p>
                   {% if ep.description %}<p class="episode-overview">{{ ep.description }}</p>{% endif %}
-                  {% if ep.video_url %}
+                  {% if ep.has_playback %}
                     <a class="btn btn-primary btn-sm" href="{{ url_for('main.watch', kind='episode', item_id=ep.id) }}">{{ ui.icon("play") }} Assistir episódio</a>
                   {% endif %}
                 </div>

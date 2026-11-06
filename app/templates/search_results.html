@@ -8,6 +8,7 @@
       {% if query %}
         <h1>Resultados para “{{ query }}”</h1>
         <p class="muted">{{ results|length }} título{{ "s" if results|length != 1 }} encontrado{{ "s" if results|length != 1 }}</p>
+        {% if results|length == 100 %}<p class="muted">Mostrando até 100 resultados. Refine a busca para encontrar outros títulos.</p>{% endif %}
       {% else %}
         <h1>Buscar</h1>
         <p class="muted">Procure por título, ator, diretor ou criador.</p>

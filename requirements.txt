@@ -10,3 +10,6 @@ Flask-Limiter==4.1.1
 requests==2.34.2
 python-dotenv==1.2.4
 gunicorn==26.2.0
+
+cryptography>=46,<48
+psycopg[binary]>=3.2,<4

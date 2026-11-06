@@ -1,0 +1,85 @@
+UPLOAD PELO NAVEGADOR DO GITHUB
+Extraia o ZIP no computador. Não envie o próprio ZIP.
+Envie o conteúdo extraído para o repositório, preservando as pastas.
+A pasta deploy agora contém 5 partes (no máximo 20.000.000 bytes cada)
+e catalog.sqlite.gz.manifest.json. Envie TODOS esses arquivos, sem renomear.
+Se necessário, envie uma pasta por vez e só faça o deploy após terminar.
+Atualize também app/services/sqlite_seed.py e app/source_cli.py com as versões do pacote.
+Mantenha CATALOG_SEED_PATH=deploy/catalog.sqlite.gz no Render.
+Esse nome continua sendo a referência lógica; o backend encontra o manifesto,
+confere cada parte e restaura o banco completo automaticamente.
+O arquivo grande catalog.sqlite.gz foi substituído pelas partes e não precisa ser enviado.
+
+CATÁLOGO COMPLETO — SQLITE PARA TESTE NO RENDER
+
+Esta entrega inclui TODAS as 316.354 fontes da lista no backend.
+O catálogo foi montado automaticamente: 30.194 filmes, 8.438 séries e 278.640 episódios.
+Fontes alternativas de um mesmo título/episódio compartilham o player.
+Essas contagens são de cadastro, não certificação de disponibilidade dos vídeos.
+
+FLUXO
+Lista M3U -> backend -> catálogo local e fontes criptografadas -> metadados TMDB.
+Ao assistir: player solicita ao backend -> backend resolve redirects e sonda mídia ->
+resposta com a URL final HTTPS -> vídeo na interface própria.
+Não é preciso colar links no front nem cadastrar filmes ou episódios individualmente.
+O seletor de fontes permite escolher alternativas já cadastradas no backend.
+
+O TMDB complementa títulos existentes, preservando os IDs quando possível.
+Títulos não identificados continuam no site com o nome da lista, sem sinopse/poster inventados.
+O enriquecimento real está rodando no computador; não foi concluído para toda a lista.
+A fila pode ser retomada com sources sync-all. Metadados consultados são reaproveitados em cache.
+As imagens e informações TMDB só aparecem para os títulos com correspondência identificada.
+
+PACOTE
+filmes-series-atualizado.zip contém o código e deploy/catalog.sqlite.gz.part001 até .part005 e o manifesto JSON.
+O banco inicial inclui todas as fontes, inclusive pendentes de metadados.
+Não contém contas de usuários, token TMDB nem a chave que decifra as fontes.
+O banco e a lista completos de trabalho permanecem no computador em instance/.
+
+RENDER (SQLite escolhido para testes)
+1. Publique o código e todas as partes/manifesto da pasta deploy no repositório usado pelo serviço.
+2. Em Environment, deixe DATABASE_URL ausente.
+3. Configure CATALOG_SEED_PATH=deploy/catalog.sqlite.gz
+4. Configure SOURCE_ENCRYPTION_KEY com o MESMO valor de instance/source-library.env local.
+5. Copie SOURCE_ALLOWED_HOSTS desse arquivo local para a variável de mesmo nome no Render.
+6. Preserve o token TMDB e SECRET_KEY existentes; mantenha APP_ENV=production.
+7. Serviço Docker: use o Dockerfile incluído.
+   Serviço Python: build = pip install -r requirements.txt
+   start = python -m flask --app run db upgrade && gunicorn --workers 1 --threads 4 --timeout 30 --bind 0.0.0.0:$PORT run:app
+8. Após um deploy com filesystem limpo, o backend restaura o catálogo automaticamente.
+   Registre uma conta no site para testar o player (a resolução exige login).
+
+Nenhuma publicação no Render foi executada. As alterações ainda estão locais.
+Não publique instance/source-library.env. A chave de fontes fica somente nas variáveis do serviço.
+O snapshot não substitui um banco existente. Em reinícios/redeploys com perda do filesystem,
+o teste retorna ao snapshot; contas novas, favoritos e mudanças locais podem desaparecer.
+
+COMANDOS LOCAIS (dentro da pasta do projeto, Python com requirements.txt instalado)
+Criar/retomar o catálogo completo sem consultar TMDB:
+python -m flask --env-file instance/source-library.env --app run sources build-catalog
+
+Continuar os metadados de todos os pendentes:
+python -m flask --env-file instance/source-library.env --app run sources sync-all
+Não execute outra cópia enquanto o processo atual estiver ativo.
+
+Ver progresso:
+python -m flask --env-file instance/source-library.env --app run sources status
+Logs: instance/catalog-sync.log e instance/catalog-sync-errors.log.
+
+Exportar um snapshot atualizado, após o enriquecimento avançar:
+python -m flask --env-file instance/source-library.env --app run sources export-sqlite deploy/catalog.sqlite.gz --split
+Depois publique novamente o arquivo. Os próximos metadados locais não chegam ao Render sozinhos.
+
+Verificar uma fonte pelo backend, sem imprimir a URL privada:
+python -m flask --env-file instance/source-library.env --app run sources check ID_FONTE
+
+LIMITES REAIS
+O backend resolve redirects, verifica HTTPS, identifica MP4/HLS e diagnostica falhas.
+A mudança HTTP->HTTPS só é aceita depois de uma requisição HTTPS bem-sucedida.
+URLs assinadas são resolvidas ao assistir, em vez de salvas como permanentes.
+Não há proxy de filmes nem transcodificação FFmpeg no Render gratuito.
+Drive /view e /preview continuam sendo páginas; não se tornam arquivos MP4 por este processo.
+HLS pode exigir CORS nos segmentos/chaves; codecs precisam ser suportados pelo aparelho.
+Fornecedores podem bloquear o IP do servidor ou entregar links expirados.
+A integração de todas as fontes não significa que todas as mídias foram reproduzidas ou validadas.
+A URL final é visível ao navegador; criptografia protege o armazenamento, não oculta o tráfego de reprodução.

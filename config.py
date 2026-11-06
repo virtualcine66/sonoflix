@@ -13,7 +13,9 @@ def _database_url() -> str | None:
     url = os.environ.get("DATABASE_URL")
     # Render/Heroku entregam "postgres://", que o SQLAlchemy 2 não aceita.
     if url and url.startswith("postgres://"):
-        url = url.replace("postgres://", "postgresql://", 1)
+        url = url.replace("postgres://", "postgresql+psycopg://", 1)
+    if url and url.startswith("postgresql://"):
+        url = url.replace("postgresql://", "postgresql+psycopg://", 1)
     return url
 
 
@@ -22,6 +24,10 @@ class Config:
     # Quando vazio, o create_app usa SQLite em instance/telao.db.
     SQLALCHEMY_DATABASE_URI = _database_url()
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+
+    SOURCE_ENCRYPTION_KEY = os.environ.get("SOURCE_ENCRYPTION_KEY", "")
+    SOURCE_ALLOWED_HOSTS = os.environ.get("SOURCE_ALLOWED_HOSTS", "")
+    SOURCE_PLAYBACK_LOGIN_REQUIRED = True
 
     TMDB_API_TOKEN = os.environ.get("TMDB_API_TOKEN", "")
     TMDB_API_KEY = os.environ.get("TMDB_API_KEY", "")
@@ -54,6 +60,10 @@ class TestingConfig(Config):
     SQLALCHEMY_DATABASE_URI = "sqlite://"
     WTF_CSRF_ENABLED = False
     RATELIMIT_ENABLED = False
+    SOURCE_ENCRYPTION_KEY = os.environ.get("SOURCE_ENCRYPTION_KEY", "")
+    SOURCE_ALLOWED_HOSTS = os.environ.get("SOURCE_ALLOWED_HOSTS", "")
+    SOURCE_PLAYBACK_LOGIN_REQUIRED = True
+
     TMDB_API_TOKEN = ""
     TMDB_API_KEY = ""
 

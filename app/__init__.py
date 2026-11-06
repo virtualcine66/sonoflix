@@ -18,7 +18,12 @@ def create_app(config_name=None):
 
     os.makedirs(app.instance_path, exist_ok=True)
     if not app.config.get("SQLALCHEMY_DATABASE_URI"):
-        app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///" + os.path.join(app.instance_path, "filmes_series.db")
+        database = os.path.join(app.instance_path, "filmes_series.db")
+        seed = os.environ.get("CATALOG_SEED_PATH")
+        if seed:
+            from app.services.sqlite_seed import restore_seed
+            restore_seed(seed, database)
+        app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///" + database
     if config_name == "production" and app.config["SECRET_KEY"] == DEV_SECRET_KEY:
         raise RuntimeError("Defina SECRET_KEY no ambiente antes de subir em produção.")
 
@@ -48,6 +53,11 @@ def create_app(config_name=None):
 
     from app.api.routes import api_bp
     app.register_blueprint(api_bp, url_prefix="/api/v1")
+
+    from app.source_routes import sources_bp
+    app.register_blueprint(sources_bp)
+    from app.source_cli import register_source_cli
+    register_source_cli(app)
 
     from app.cli import register_cli
     register_cli(app)

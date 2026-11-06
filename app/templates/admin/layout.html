@@ -11,6 +11,7 @@
   <aside class="admin-nav" aria-label="Painel">
     <p class="admin-nav-title">Painel admin</p>
     <nav>
+      <a href="{{ url_for('sources.listing') }}">Fontes de reprodução</a>
       <a href="{{ url_for('admin.dashboard') }}" {% if endpoint == 'admin.dashboard' %}aria-current="page"{% endif %}>{{ ui.icon("grid") }}Visão geral</a>
       <a href="{{ url_for('admin.list_movies') }}" {% if endpoint == 'admin.list_movies' or kind_arg == 'movie' %}aria-current="page"{% endif %}>{{ ui.icon("film") }}Filmes</a>
       <a href="{{ url_for('admin.list_series') }}" {% if endpoint in ('admin.list_series', 'admin.list_seasons', 'admin.add_season', 'admin.edit_season', 'admin.list_episodes', 'admin.add_episode', 'admin.edit_episode') or kind_arg == 'series' %}aria-current="page"{% endif %}>{{ ui.icon("tv") }}Séries</a>

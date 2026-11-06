@@ -5,8 +5,9 @@
   <script src="{{ url_for('static', filename='js/player.js') }}" defer></script>
 {% endblock %}
 {% block content %}
-<section class="watch-shell" data-player data-source="{{ media.video_url }}" data-type="{{ media.video_type }}"
-         {% if media.uses_hls %}data-hls-library="{{ url_for('static', filename='vendor/hls.min.js') }}"{% endif %}
+<section class="watch-shell" data-player data-source="{{ media.video_url if not media.managed_sources else '' }}"
+         {% if media.managed_sources %}data-resolve-url="{{ url_for('sources.playback', kind=kind, item_id=media.id) }}" data-csrf="{{ csrf_token() }}"{% endif %} data-type="{{ media.video_type }}"
+         {% if media.uses_hls or media.managed_sources %}data-hls-library="{{ url_for('static', filename='vendor/hls.min.js') }}"{% endif %}
          data-progress-key="fs:{{ current_user.id if current_user.is_authenticated else 'guest' }}:{{ kind }}:{{ media.id }}"
          aria-label="Reprodutor de {{ media.title }}">
   <header class="watch-header">
@@ -18,8 +19,8 @@
     <button class="btn btn-ghost" type="button" aria-pressed="false" data-tv hidden>Modo TV</button>
   </header>
   <div class="player-screen" data-screen>
-    <video class="player-video" data-video controls playsinline preload="metadata" crossorigin="anonymous"
-           src="{{ media.video_url }}" {% if parent.backdrop_url %}poster="{{ parent.backdrop('w1280') }}"{% endif %}
+    <video class="player-video" data-video controls playsinline preload="metadata" {% if media.subtitle_url %}crossorigin="anonymous"{% endif %}
+           {% if not media.managed_sources %}src="{{ media.video_url }}"{% endif %} {% if parent.backdrop_url %}poster="{{ parent.backdrop('w1280') }}"{% endif %}
            tabindex="0" aria-label="Vídeo de {{ media.title }}">
       {% if media.subtitle_url %}<track kind="subtitles" src="{{ media.subtitle_url }}" srclang="pt-BR" label="Português" default>{% endif %}
       Seu navegador não oferece reprodução de vídeo HTML5.
@@ -58,6 +59,14 @@
   <div class="watch-bottom">
     <p class="muted small">Controle remoto: setas para navegar · OK para selecionar · Voltar para sair da tela cheia. No vídeo: ← → pulam 10s · OK pausa.</p>
     <div class="actions">
+      {% if media.managed_sources %}
+        <label>Fonte <select data-source-choice aria-label="Fonte do vídeo">
+          <option value="">Automática</option>
+          {% for candidate in media.sources if candidate.enabled %}
+          <option value="{{ candidate.id }}">{{ loop.index }} · {{ candidate.group_name or candidate.label }}</option>
+          {% endfor %}
+        </select></label>
+      {% endif %}
       {% if next_episode %}<a class="btn btn-primary" href="{{ url_for('main.watch', kind='episode', item_id=next_episode.id) }}" data-next>Próximo episódio →</a>{% endif %}
     </div>
   </div>

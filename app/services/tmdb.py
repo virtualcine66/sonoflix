@@ -34,6 +34,7 @@ class TMDbClient:
         self.cache_ttl = cache_ttl
         self.session = session or requests.Session()
         self._cache = {}
+        self._last_request = 0.0
 
     @classmethod
     def from_config(cls, config):
@@ -65,6 +66,10 @@ class TMDbClient:
         else:
             params["api_key"] = self.api_key
 
+        delay = 0.25 - (time.monotonic() - self._last_request)
+        if delay > 0:
+            time.sleep(delay)
+        self._last_request = time.monotonic()
         try:
             response = self.session.get(BASE_URL + path, params=params, headers=headers, timeout=self.timeout)
         except requests.RequestException as exc:
@@ -80,6 +85,8 @@ class TMDbClient:
             raise TMDbError(f"O TMDb respondeu com erro {response.status_code}.")
 
         data = response.json()
+        if len(self._cache) >= 512:
+            self._cache.pop(next(iter(self._cache)))
         self._cache[cache_key] = (time.monotonic() + self.cache_ttl, data)
         return data
 

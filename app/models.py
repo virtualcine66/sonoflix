@@ -3,7 +3,7 @@ from urllib.parse import urlsplit
 
 from flask import current_app, url_for
 from flask_login import UserMixin
-from sqlalchemy.orm import validates
+from sqlalchemy.orm import declared_attr, validates
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from app.extensions import db, login_manager
@@ -132,6 +132,7 @@ class CatalogItem:
     Cada subclasse define `kind`, a data de estreia e a relação com gêneros.
     """
     kind = None
+    catalog_key = db.Column(db.String(64), unique=True, nullable=True)
 
     id = db.Column(db.Integer, primary_key=True)
     tmdb_id = db.Column(db.Integer, nullable=True, unique=True, index=True)
@@ -233,6 +234,19 @@ class Playable:
     video_url = db.Column(db.String(2048), nullable=True)
     video_type = db.Column(db.String(12), nullable=False, default="auto", server_default="auto")
     subtitle_url = db.Column(db.String(2048), nullable=True)
+
+    @declared_attr
+    def sources(cls):
+        return db.relationship("MediaSource", foreign_keys=f"MediaSource.{cls.__name__.lower()}_id",
+                               lazy="selectin", passive_deletes=True)
+
+    @property
+    def managed_sources(self):
+        return any(source.enabled for source in self.sources)
+
+    @property
+    def has_playback(self):
+        return bool(self.video_url) or self.managed_sources
 
     @property
     def uses_hls(self):

@@ -83,7 +83,34 @@
       resume.hidden = false;
     }
   }
-  function load() {
+  var resolving = false;
+  function resolveSource() {
+    if (resolving) return;
+    resolving = true;
+    failed = false;
+    message("Localizando uma fonte de reprodução…");
+    play.disabled = true;
+    var xhr = new XMLHttpRequest();
+    xhr.open("POST", root.getAttribute("data-resolve-url"));
+    xhr.setRequestHeader("X-CSRFToken", root.getAttribute("data-csrf"));
+    xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+    xhr.timeout = 18000;
+    function finish() { resolving = false; play.disabled = false; }
+    xhr.onload = function () {
+      finish();
+      var result;
+      try { result = JSON.parse(xhr.responseText); }
+      catch (ignore) { message("Resposta inválida do servidor. Entre na sua conta e tente novamente.", true); return; }
+      if (xhr.status !== 200) { message(result.message || "Fonte indisponível.", true); return; }
+      source = result.url; format = result.type;
+      load(true);
+    };
+    xhr.onerror = xhr.ontimeout = function () { finish(); message("Não foi possível consultar a fonte. Tente novamente.", true); };
+    var choice = find("source-choice");
+    xhr.send(choice && choice.value ? "source_id=" + encodeURIComponent(choice.value) : "");
+  }
+  function load(resolved) {
+    if (root.getAttribute("data-resolve-url") && !resolved) { resolveSource(); return; }
     failed = false;
     if (hls) { hls.destroy(); hls = null; }
     quality.innerHTML = '<option value="-1">Automática</option>';
@@ -96,7 +123,7 @@
         var script = document.createElement("script");
         script.src = library;
         play.disabled = true;
-        script.onload = function () { play.disabled = false; load(); };
+        script.onload = function () { play.disabled = false; load(true); };
         script.onerror = function () {
           play.disabled = false;
           script.parentNode.removeChild(script);
@@ -191,6 +218,10 @@
   find("captions").hidden = !video.querySelector("track");
   find("fullscreen").addEventListener("click", fullscreen);
   find("retry").addEventListener("click", function () { pending = video.currentTime; hasStarted = false; load(); });
+  if (find("source-choice")) find("source-choice").addEventListener("change", function () {
+    if (resolving) return;
+    pending = video.currentTime; video.pause(); hasStarted = false; load();
+  });
   find("native").addEventListener("click", function () {
     nativeControls = !nativeControls;
     video.controls = nativeControls;

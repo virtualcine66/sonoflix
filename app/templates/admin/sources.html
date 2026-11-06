@@ -1,0 +1,15 @@
+{% extends "admin/layout.html" %}
+{% block admin_content %}
+<h1>Fontes de reprodução</h1>
+<p>Importe listas pelo comando local <code>flask sources import-m3u</code>. Endereços e credenciais não são exibidos aqui.</p>
+<form method="get"><label>Buscar <input name="q" value="{{ query }}"></label>
+<label>Situação <select name="status"><option value="">Todas</option>{% for value in ['pending','review','matched','error'] %}<option value="{{ value }}" {% if status == value %}selected{% endif %}>{{ value }}</option>{% endfor %}</select></label><button>Filtrar</button></form>
+<p>{{ page.total }} fontes encontradas.</p>
+{% for source in page.items %}
+<article class="section"><h2>#{{ source.id }} — {{ source.label }}</h2>
+<p>{{ source.group_name }} · {{ source.kind }} · {{ source.match_status }}{% if source.last_code %} · Última verificação: {{ source.last_code }}{% endif %}</p>
+{% if source.candidates %}<ul>{% for candidate in source.candidates %}<li>TMDB {{ candidate.tmdb_id }} — {{ candidate.title }} ({{ candidate.year or 'ano desconhecido' }})</li>{% endfor %}</ul>{% endif %}
+<form method="post" action="{{ url_for('sources.bind', source_id=source.id) }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><label>ID TMDB confirmado <input name="tmdb_id" type="number" min="1" required></label><button>Associar ao catálogo</button></form>
+</article>{% endfor %}
+<nav>{% if page.has_prev %}<a href="{{ url_for('sources.listing', page=page.prev_num, q=query, status=status) }}">Anterior</a>{% endif %} Página {{ page.page }} de {{ page.pages or 1 }} {% if page.has_next %}<a href="{{ url_for('sources.listing', page=page.next_num, q=query, status=status) }}">Próxima</a>{% endif %}</nav>
+{% endblock %}

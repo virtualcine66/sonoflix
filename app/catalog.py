@@ -65,7 +65,8 @@ def featured_item():
     """Destaque da home: um título marcado como destaque, senão o mais popular com imagem de fundo."""
     for model in (Movie, Series):
         item = db.session.scalar(
-            db.select(model).where(model.featured, model.backdrop_url.is_not(None)).order_by(model.updated_at.desc()))
+            db.select(model).where(model.featured, model.backdrop_url.is_not(None))
+            .order_by(model.updated_at.desc()).limit(1))
         if item:
             return item
     for with_backdrop in (True, False):
@@ -74,7 +75,7 @@ def featured_item():
             stmt = db.select(model).order_by(model.popularity.desc())
             if with_backdrop:
                 stmt = stmt.where(model.backdrop_url.is_not(None))
-            candidates.append(db.session.scalar(stmt))
+            candidates.append(db.session.scalar(stmt.limit(1)))
         candidates = [c for c in candidates if c]
         if candidates:
             return max(candidates, key=lambda c: c.popularity or 0)

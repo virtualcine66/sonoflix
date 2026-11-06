@@ -1,5 +1,6 @@
 from flask import Blueprint, abort, current_app, flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
+from sqlalchemy import or_
 
 from app.catalog import (
     SORT_OPTIONS,
@@ -81,7 +82,7 @@ def search():
     Busca em filmes e séries por título, elenco e direção/criação.
     """
     query = request.args.get("query", "").strip()[:100]
-    results = search_items(query) if query else []
+    results = search_items(query, limit=100) if query else []
     return render_template("search_results.html", title="Busca", query=query, results=results)
 
 
@@ -118,16 +119,19 @@ def watch(kind, item_id):
     if model is None:
         abort(404)
     media = db.get_or_404(model, item_id)
-    if not media.video_url:
+    if not media.has_playback:
         abort(404)
     parent = media if kind == "movie" else media.season.series
     next_episode = None
     if kind == "episode":
-        episodes = db.session.scalars(
-            db.select(Episode).join(Season).where(Season.series_id == parent.id)
-            .order_by(Season.season_number, Episode.episode_number, Episode.id)
-        ).all()
-        index = next(i for i, episode in enumerate(episodes) if episode.id == media.id)
-        next_episode = next((episode for episode in episodes[index + 1:] if episode.video_url), None)
+        next_episode = db.session.scalar(
+            db.select(Episode).join(Season).where(
+                Season.series_id == parent.id,
+                or_(Season.season_number > media.season.season_number,
+                    (Season.season_number == media.season.season_number)
+                    & (Episode.episode_number > media.episode_number)),
+                or_((Episode.video_url.is_not(None)) & (Episode.video_url != ''),
+                    Episode.sources.any(enabled=True)))
+            .order_by(Season.season_number, Episode.episode_number, Episode.id).limit(1))
     return render_template("watch.html", title=media.title, media=media, parent=parent,
                            kind=kind, next_episode=next_episode)

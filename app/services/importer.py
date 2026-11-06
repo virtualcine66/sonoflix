@@ -16,15 +16,17 @@ MAX_CAST = 10
 ENDED_STATUSES = {"Ended", "Canceled"}
 
 
-def import_title(client, kind, tmdb_id, with_episodes=True):
+def import_title(client, kind, tmdb_id, with_episodes=True, target=None):
     """Busca o título no TMDb e cria/atualiza o Movie ou Series correspondente."""
     if kind == MOVIE:
         data = client.movie(tmdb_id)
-        item = db.session.scalar(db.select(Movie).filter_by(tmdb_id=tmdb_id)) or Movie(tmdb_id=tmdb_id)
+        item = db.session.scalar(db.select(Movie).filter_by(tmdb_id=tmdb_id)) or target or Movie()
+        item.tmdb_id = tmdb_id
         _fill_movie(item, data)
     elif kind == SERIES:
         data = client.tv(tmdb_id)
-        item = db.session.scalar(db.select(Series).filter_by(tmdb_id=tmdb_id)) or Series(tmdb_id=tmdb_id)
+        item = db.session.scalar(db.select(Series).filter_by(tmdb_id=tmdb_id)) or target or Series()
+        item.tmdb_id = tmdb_id
         _fill_series(item, data)
     else:
         raise ValueError(f"Tipo inválido: {kind}")
@@ -83,23 +85,20 @@ def _genre(name):
 
 
 def _sync_seasons(client, series, data, with_episodes):
-    """Recria temporadas e episódios a partir do TMDb (a temporada 0, de especiais, fica de fora)."""
-    for season in series.seasons:
-        db.session.delete(season)
-    db.session.flush()
-
+    """Atualiza metadados sem apagar episódios, fontes ou IDs existentes."""
+    existing = {season.season_number: season for season in series.seasons}
     for info in data.get("seasons", []):
         number = info.get("season_number")
         if not number:
             continue
-        season = Season(
-            season_number=number,
-            title=info.get("name"),
-            description=info.get("overview") or None,
-            release_date=parse_date(info.get("air_date")),
-            poster_url=info.get("poster_path"),
-        )
-        series.seasons.append(season)
+        season = existing.get(number)
+        if season is None:
+            season = Season(season_number=number)
+            series.seasons.append(season)
+        season.title = info.get("name")
+        season.description = info.get("overview") or season.description
+        season.release_date = parse_date(info.get("air_date"))
+        season.poster_url = info.get("poster_path") or season.poster_url
         if not with_episodes:
             continue
         try:
@@ -107,12 +106,17 @@ def _sync_seasons(client, series, data, with_episodes):
         except TMDbError as exc:
             log.warning("Episódios da temporada %s de %s não importados: %s", number, series.title, exc)
             continue
-        for ep in detail.get("episodes", []):
-            season.episodes.append(Episode(
-                episode_number=ep.get("episode_number"),
-                title=ep.get("name") or f"Episódio {ep.get('episode_number')}",
-                description=ep.get("overview") or None,
-                release_date=parse_date(ep.get("air_date")),
-                duration_minutes=ep.get("runtime"),
-                still_url=ep.get("still_path"),
-            ))
+        episodes = {ep.episode_number: ep for ep in season.episodes}
+        for info_ep in detail.get("episodes", []):
+            ep_number = info_ep.get("episode_number")
+            if not ep_number:
+                continue
+            episode = episodes.get(ep_number)
+            if episode is None:
+                episode = Episode(episode_number=ep_number)
+                season.episodes.append(episode)
+            episode.title = info_ep.get("name") or f"Episódio {ep_number}"
+            episode.description = info_ep.get("overview") or episode.description
+            episode.release_date = parse_date(info_ep.get("air_date"))
+            episode.duration_minutes = info_ep.get("runtime")
+            episode.still_url = info_ep.get("still_path") or episode.still_url
